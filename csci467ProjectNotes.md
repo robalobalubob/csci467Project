@@ -101,3 +101,7 @@
 - Some items will be provided later marked in the project statement by details provided later
     - This is for the legacy customer database and the external processing system
 - Necessary tables can't be fully generated without the customer table as a backbone
+- Website for quote creation
+- Programs for finalization, purchasing, and administration
+    - One program or multiple
+    - Just leave them as web applications?
