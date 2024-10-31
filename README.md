@@ -3,7 +3,8 @@ This is the repository for Group 6B's project in CSCI 467.
 # Table of Contents
 1. [Project Statement](csci467ProjectStatement.md)
 2. [Project Notes](csci467ProjectNotes.md)
-# Quick Start Guide
+
+# Backend Quick Start Guide
 
 Follow these steps to set up and run the **Quote System Backend** on your local machine.
 
@@ -13,7 +14,9 @@ Ensure you have the following installed:
 
 - **Node.js** 
 - **npm** 
+   - Should be installed with node.js
 - **MySQL** 
+   - Install MySQL community
 - **Git**
 
 ## Installation Steps
@@ -22,8 +25,8 @@ Ensure you have the following installed:
 
    Open your terminal and run:
 
-   ```bash
-   git clone https://github.com/yourusername/quote-system-backend.git
+   ```
+   git clone https://github.com/robalobalubob/csci467Project.git
    cd quote-system-backend
    ```
 
@@ -31,17 +34,19 @@ Ensure you have the following installed:
 
    Install the necessary npm packages:
 
-   ```bash
+   ```
    npm install
    ```
+
    Note: Only run when in the quote-system-backend directory.
+   
 3. **Configure Environment Variables**
 
    - **Create a `.env` File**
 
      In the root directory of the project, create a file named `.env`:
 
-     ```bash
+     ```
      touch .env
      ```
 
@@ -64,13 +69,15 @@ Ensure you have the following installed:
 
    - **Start MySQL Server**
 
+     Install MySQL community edition and run through the set up.
+
      Ensure that your MySQL server is running.
 
    - **Create the Database**
 
      Log into MySQL:
 
-     ```bash
+     ```
      mysql -u root -p
      ```
      On Windows open mySQL Command Line Client and enter the password.
@@ -92,7 +99,9 @@ Ensure you have the following installed:
 
 6. **(Optional) Seed the Database**
 
-   NOT YET IMPLEMENTED
+   ```
+   npx sequelize-cli db:seed all
+   ```
 
 7. **Start the Development Server**
 
@@ -116,7 +125,5 @@ Ensure you have the following installed:
 ## Additional Notes
 
 - **Environment Variables:** Ensure that the `.env` file is **never** committed to the repository. This is already handled by the `.gitignore` file.
-  
-- **Database Credentials:** It's recommended to use a dedicated MySQL user with limited privileges for better security.
 
 - **Port Configuration:** If port `3000` is already in use, you can change the `PORT` variable in the `.env` file to another available port.
