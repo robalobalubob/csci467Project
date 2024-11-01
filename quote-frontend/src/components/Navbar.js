@@ -1,22 +1,25 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-function Navbar() {
+function Navbar({ user, setUser }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    navigate('/login');
+    setUser(null);
+    navigate('/');
   };
 
   return (
     <nav className="navbar">
       <ul>
-        <li><Link to="/">Home</Link></li>
-        {/* Conditional rendering based on authentication can be omitted or simplified */}
-        {/* If implementing authentication in the future, you can reintroduce conditional rendering */}
-        <li><Link to="/dashboard">Dashboard</Link></li>
-        <li><Link to="/login">Login</Link></li>
-        <li><Link to="/register">Register</Link></li>
+        {user ? (
+          <>
+            <li>Welcome, {user.name}</li>
+            <li><button onClick={handleLogout}>Logout</button></li>
+          </>
+        ) : (
+          <li>Please log in</li>
+        )}
       </ul>
     </nav>
   );

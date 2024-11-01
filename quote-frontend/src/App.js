@@ -1,21 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
 import Login from './pages/Login';
-import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
+  const [user, setUser] = useState(null);
   return (
     <Router>
-      <Navbar />
+      <Navbar user={user} setUser={setUser} />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Login setUser={setUser} />} />
 
-        {/* Add more routes as needed */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <PrivateRoute user={user}>
+              <Dashboard user={user} />
+            </PrivateRoute>
+          } 
+        />
         
       </Routes>
     </Router>

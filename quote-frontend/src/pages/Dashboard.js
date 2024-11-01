@@ -1,81 +1,85 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import QuoteList from '../components/QuoteList';
+import QuoteForm from '../components/QuoteForm.js';
 import api from '../services/api';
 
-function Dashboard() {
-  const [users, setUsers] = useState([]);
+function Dashboard({ user }) {
   const [quotes, setQuotes] = useState([]);
-  const [lineItems, setLineItems] = useState([]);
+  const [editingQuote, setEditingQuote] = useState(null);
+
+  const handleCreateQuote = () => {
+    setEditingQuote({
+      quoteId: null, 
+      associateId: user.associate_id, // Use the associate_id from logged-in user
+      customerId: '', 
+      email: '', 
+      secretNotes: '',
+      items: [],
+      status: 'draft',
+    });
+  };
+
+  const handleEditQuote = (quote) => {
+    setEditingQuote(quote);
+  };
+
+  const handleSaveQuote = async (quote) => {
+    try {
+      if (quote.quoteId) {
+        // Update existing quote
+        await api.put(`/quotes/${quote.quoteId}`, quote);
+      } else {
+        // Create new quote
+        const response = await api.post('/quotes', quote);
+        const savedQuote = response.data;
+        setQuotes([...quotes, savedQuote]);
+      }
+      setEditingQuote(null);
+    } catch (error) {
+      console.error('Error saving quote:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingQuote(null);
+  };
 
   useEffect(() => {
-    // Fetch Users
-    const fetchUsers = async () => {
-      try {
-        const response = await api.get('/users');
-        setUsers(response.data);
-      } catch (err) {
-        console.error('Error fetching users:', err);
-      }
-    };
-
-    // Fetch Quotes
     const fetchQuotes = async () => {
       try {
-        const response = await api.get('/quotes');
+        const response = await api.get('/quotes', {
+          params: { associate_id: user.associate_id },
+        });
         setQuotes(response.data);
-      } catch (err) {
-        console.error('Error fetching quotes:', err);
+      } catch (error) {
+        console.error('Error fetching quotes:', error);
       }
     };
-
-    // Fetch Line Items
-    const fetchLineItems = async () => {
-      try {
-        const response = await api.get('/line-items');
-        setLineItems(response.data);
-      } catch (err) {
-        console.error('Error fetching line items:', err);
-      }
-    };
-
-    fetchUsers();
     fetchQuotes();
-    fetchLineItems();
-  }, []);
+  }, [user.associate_id]);
 
   return (
     <div>
-      <h2>Dashboard</h2>
-
-      <section>
-        <h3>Users</h3>
-        <ul>
-          {users.map(user => (
-            <li key={user.associateId}>{user.name} ({user.userId}) - {user.role}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section>
-        <h3>Quotes</h3>
-        <ul>
-          {quotes.map(quote => (
-            <li key={quote.quoteId}>
-              Quote ID: {quote.quoteId}, Customer ID: {quote.customerId}, Status: {quote.status}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section>
-        <h3>Line Items</h3>
-        <ul>
-          {lineItems.map(item => (
-            <li key={item.lineItemId}>
-              Line Item ID: {item.lineItemId}, Description: {item.description}, Price: ${item.price}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <h2>Welcome, {user.name}</h2>
+      {editingQuote ? (
+        <QuoteForm
+          quote={editingQuote}
+          onSave={handleSaveQuote}
+          onCancel={handleCancelEdit}
+        />
+      ) : (
+        <>
+          <button onClick={handleCreateQuote}>Create New Quote</button>
+          <QuoteList
+            quotes={quotes.filter(
+              (quote) =>
+                quote.associateId === user.associate_id &&
+                quote.status === 'draft'
+            )}
+            onEdit={handleEditQuote}
+          />
+        </>
+      )}
     </div>
   );
 }

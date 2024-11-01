@@ -1,15 +1,23 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const { sequelize } = require('./models');
 const routes = require('./routes');
+const authRoutes = require('./routes/auth');
+const quoteRoutes = require('./routes/quotes');
 
 const app = express();
+
+app.use(cors({
+    origin: 'http://localhost:3001',
+}));
 
 app.use(bodyParser.json());
 
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.use('/api', routes);
+app.use('/api/auth', authRoutes);
+app.use('/api', quoteRoutes);
 
 // Root Route
 app.get('/', (req, res) => {
