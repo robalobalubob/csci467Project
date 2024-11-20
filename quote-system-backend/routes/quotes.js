@@ -71,12 +71,41 @@ router.get('/quotes', async (req, res) => {
   try {
     const quotes = await Quote.findAll({
       where: { associateId: associate_id, status: 'draft' },
-      include: [LineItem],
+      include: [{
+        model: LineItem,
+        as: 'items',
+      }],
     });
 
     res.json(quotes);
   } catch (error) {
     console.error('Error retrieving quotes:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Finalize a quote
+router.post('/quotes/:quoteId/finalize', async (req, res) => {
+  const { quoteId } = req.params;
+
+  try {
+    const quote = await Quote.findByPk(quoteId);
+
+    if (!quote) {
+      return res.status(404).json({ success: false, message: 'Quote not found' });
+    }
+
+    // Ensure the quote is in 'draft' status before finalizing
+    if (quote.status !== 'draft') {
+      return res.status(400).json({ success: false, message: 'Only draft quotes can be finalized' });
+    }
+
+    // Update quote status to 'finalized'
+    await quote.update({ status: 'finalized' });
+
+    res.json({ success: true, message: 'Quote finalized', quote });
+  } catch (error) {
+    console.error('Error finalizing quote:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

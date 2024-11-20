@@ -9,10 +9,10 @@ function Dashboard({ user }) {
 
   const handleCreateQuote = () => {
     setEditingQuote({
-      quoteId: null, 
-      associateId: user.associate_id, // Use the associate_id from logged-in user
-      customerId: '', 
-      email: '', 
+      quoteId: null, // New quote
+      associateId: user.associate_id,
+      customerId: '',
+      email: '',
       secretNotes: '',
       items: [],
       status: 'draft',
@@ -35,6 +35,11 @@ function Dashboard({ user }) {
         setQuotes([...quotes, savedQuote]);
       }
       setEditingQuote(null);
+      // Fetch quotes after saving
+      const updatedQuotes = await api.get('/quotes', {
+        params: { associate_id: user.associate_id },
+      });
+      setQuotes(updatedQuotes.data);
     } catch (error) {
       console.error('Error saving quote:', error);
     }
@@ -44,7 +49,19 @@ function Dashboard({ user }) {
     setEditingQuote(null);
   };
 
+  const handleQuoteUpdated = async () => {
+    try {
+      const response = await api.get('/quotes', {
+        params: { associate_id: user.associate_id },
+      });
+      setQuotes(response.data);
+    } catch (error) {
+      console.error('Error refreshing quotes:', error);
+    }
+  };
+
   useEffect(() => {
+    // Define fetchQuotes inside useEffect
     const fetchQuotes = async () => {
       try {
         const response = await api.get('/quotes', {
@@ -55,8 +72,9 @@ function Dashboard({ user }) {
         console.error('Error fetching quotes:', error);
       }
     };
+
     fetchQuotes();
-  }, [user.associate_id]);
+  }, [user.associate_id])
 
   return (
     <div>
@@ -77,6 +95,7 @@ function Dashboard({ user }) {
                 quote.status === 'draft'
             )}
             onEdit={handleEditQuote}
+            onQuoteUpdated={handleQuoteUpdated}
           />
         </>
       )}

@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
     Quote.belongsTo(models.User, { foreignKey: 'associate_id' });
 
     // A Quote has many LineItems
-    Quote.hasMany(models.LineItem, { foreignKey: 'quote_id' });
+    Quote.hasMany(models.LineItem, { foreignKey: 'quote_id', as: 'items' });
   };
 
   return Quote;
