@@ -4,6 +4,7 @@ const cors = require('cors');
 const { sequelize, legacySequelize } = require('./models');
 const routes = require('./routes');
 const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -18,6 +19,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use('/api/auth', authRoutes);
+
+app.use('/api/admin', adminRoutes);
 
 // Root Route
 app.get('/', (req, res) => {
