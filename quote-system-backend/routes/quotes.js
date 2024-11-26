@@ -1,12 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const { Quote, LineItem } = require('../models');
+const { Quote, LineItem, LegacyCustomer } = require('../models');
 
 // Create a new quote
-router.post('/quotes', async (req, res) => {
+router.post('/', async (req, res) => {
   const { associateId, customerId, email, secretNotes, items } = req.body;
 
   try {
+
+    const customer = await LegacyCustomer.findOne({
+      where: { id: customerId },
+    });
+
+    if (!customer) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid customer ID' });
+    }
+    
     const newQuote = await Quote.create({
       associateId,
       customerId,
@@ -32,30 +43,59 @@ router.post('/quotes', async (req, res) => {
   }
 });
 
-router.put('/quotes/:quoteId', async (req, res) => {
+router.put('/:quoteId', async (req, res) => {
   const { quoteId } = req.params;
-  const { description, items } = req.body;
+  const { associateId, customerId, email, secretNotes, items } = req.body;
 
   try {
-    const quote = await Quote.findByPk(quoteId);
+    const quote = await Quote.findByPk(quoteId, {
+      include: [{ model: LineItem, as: 'items' }],
+    });
 
     if (!quote) {
       return res.status(404).json({ success: false, message: 'Quote not found' });
     }
 
     // Update quote details
-    await quote.update({ description });
+    await quote.update({ associateId, customerId, email, secretNotes });
 
     // Update line items
-    // For simplicity, delete existing items and re-create them
-    await LineItem.destroy({ where: { quoteId } });
+    // Existing line items from the database
+    const existingItems = quote.items;
 
-    if (items && items.length > 0) {
-      const lineItems = items.map(item => ({
-        ...item,
-        quoteId,
-      }));
-      await LineItem.bulkCreate(lineItems);
+    // Maps for tracking line items
+    const existingItemsMap = {};
+    existingItems.forEach(item => {
+      existingItemsMap[item.lineItemId] = item;
+    });
+
+    // Keep track of processed line items
+    const processedItemIds = new Set();
+
+    // Process incoming items
+    for (const item of items) {
+      if (item.lineItemId && existingItemsMap[item.lineItemId]) {
+        // Update existing item
+        await existingItemsMap[item.lineItemId].update({
+          description: item.description,
+          price: item.price,
+        });
+        processedItemIds.add(item.lineItemId);
+      } else {
+        // Create new item
+        await LineItem.create({
+          description: item.description,
+          price: item.price,
+          quoteId: quoteId,
+        });
+      }
+    }
+
+    // Delete items that are not in the incoming items
+    for (const item of existingItems) {
+      if (!processedItemIds.has(item.lineItemId)) {
+        await item.destroy();
+      }
     }
 
     res.json({ success: true, message: 'Quote updated' });
@@ -65,7 +105,7 @@ router.put('/quotes/:quoteId', async (req, res) => {
   }
 });
 
-router.get('/quotes', async (req, res) => {
+router.get('/', async (req, res) => {
   const { associate_id } = req.query;
 
   try {
@@ -85,7 +125,7 @@ router.get('/quotes', async (req, res) => {
 });
 
 // Finalize a quote
-router.post('/quotes/:quoteId/finalize', async (req, res) => {
+router.post('/:quoteId/finalize', async (req, res) => {
   const { quoteId } = req.params;
 
   try {
@@ -106,6 +146,34 @@ router.post('/quotes/:quoteId/finalize', async (req, res) => {
     res.json({ success: true, message: 'Quote finalized', quote });
   } catch (error) {
     console.error('Error finalizing quote:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.delete('/:quoteId', async (req, res) => {
+  const { quoteId } = req.params;
+
+  try {
+    const quote = await Quote.findByPk(quoteId);
+
+    if (!quote) {
+      return res.status(404).json({ success: false, message: 'Quote not found' });
+    }
+
+    // Only allow deletion of quotes in 'draft' status
+    if (quote.status !== 'draft') {
+      return res.status(400).json({ success: false, message: 'Only draft quotes can be deleted' });
+    }
+
+    // Delete associated line items
+    await LineItem.destroy({ where: { quoteId } });
+
+    // Delete the quote
+    await quote.destroy();
+
+    res.json({ success: true, message: 'Quote deleted' });
+  } catch (error) {
+    console.error('Error deleting quote:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

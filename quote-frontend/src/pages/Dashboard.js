@@ -42,6 +42,7 @@ function Dashboard({ user }) {
       setQuotes(updatedQuotes.data);
     } catch (error) {
       console.error('Error saving quote:', error);
+      alert('Error saving quote: ' + error.response.data.message);
     }
   };
 

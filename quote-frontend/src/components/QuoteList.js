@@ -20,9 +20,11 @@ function QuoteList({ quotes, onEdit, onQuoteUpdated }) {
 
 function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
   const [showItems, setShowItems] = useState(false);
+
   const toggleItems = () => {
     setShowItems((prevShowItems) => !prevShowItems);
   };
+
   const handleFinalizeQuote = async () => {
     try {
       const response = await api.post(`/quotes/${quote.quoteId}/finalize`);
@@ -37,6 +39,24 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
       console.error('Error finalizing quote: ', error);
     }
   }
+
+  const handleDeleteQuote = async () => {
+    if (window.confirm('Are you sure you want to delete this quote?')) {
+      try {
+        const response = await api.delete(`/quotes/${quote.quoteId}`);
+        if (response.data.success) {
+          if (onQuoteUpdated) {
+            onQuoteUpdated();
+          }
+        } else {
+          console.error('Failed to delete quote: ', response.data.message);
+        }
+      } catch (error) {
+        console.error('Error deleting quote: ', error);
+      }
+    }
+  };
+
   return (
     <li>
       <p>Quote ID: {quote.quoteId}</p>
@@ -47,9 +67,9 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
         <>
         <button onClick={() => onEdit(quote)}>Edit</button>
         <button onClick={handleFinalizeQuote}>Submit</button>
+        <button onClick={handleDeleteQuote}>Delete</button>
         </>
       )}
-      <button onClick={() => onEdit(quote)}>Edit</button>
       <button onClick={toggleItems}>
         {showItems ? 'Hide Items' : 'Show Items'}
       </button>

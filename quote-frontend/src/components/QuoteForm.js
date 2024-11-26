@@ -1,13 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../services/api';
 
 function QuoteForm({ quote, onSave, onCancel }) {
   const [formData, setFormData] = useState({
     ...quote,
+    quoteId: quote.quoteId || null,
+    associateId: quote.associateId || '',
     customerId: quote.customerId || '',
     email: quote.email || '',
     secretNotes: quote.secretNotes || '',
     items: quote.items || [],
   });
+
+  const [customerInfo, setCustomerInfo] = useState(null);
+  const [customerError, setCustomerError] = useState('');
+
+  useEffect(() => {
+    const fetchCustomerInfo = async () => {
+      if (formData.customerId) {
+        try {
+          const response = await api.get(`/customers/${formData.customerId}`);
+          setCustomerInfo(response.data);
+          setCustomerError('');
+        } catch (error) {
+          console.error('Error fetching customer info:', error);
+          setCustomerInfo(null);
+          setCustomerError('Customer not found.');
+        }
+      } else {
+        setCustomerInfo(null);
+        setCustomerError('');
+      }
+    };
+  
+    fetchCustomerInfo();
+  }, [formData.customerId]);
 
   const handleChange = (e) => {
     setFormData({
@@ -43,7 +70,22 @@ function QuoteForm({ quote, onSave, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+  
+    // Prepare the data to be sent to the backend
+    const dataToSend = {
+      quoteId: formData.quoteId,
+      associateId: formData.associateId,
+      customerId: formData.customerId,
+      email: formData.email,
+      secretNotes: formData.secretNotes,
+      items: formData.items.map((item) => ({
+        lineItemId: item.lineItemId, // Include lineItemId if it exists
+        description: item.description,
+        price: item.price,
+      })),
+    };
+  
+    onSave(dataToSend);
   };
 
   return (
@@ -60,6 +102,18 @@ function QuoteForm({ quote, onSave, onCancel }) {
             required
           />
         </div>
+        {customerInfo && (
+          <div>
+            <h4>Customer Information</h4>
+            <p><strong>Name:</strong> {customerInfo.name}</p>
+            <p><strong>City:</strong> {customerInfo.city}</p>
+            <p><strong>Street:</strong> {customerInfo.street}</p>
+            <p><strong>Contact:</strong> {customerInfo.contact}</p>
+          </div>
+        )}
+        {customerError && (
+          <p style={{ color: 'red' }}>{customerError}</p>
+        )}
         <div>
           <label>Customer Email:</label>
           <input
@@ -80,7 +134,7 @@ function QuoteForm({ quote, onSave, onCancel }) {
         </div>
         <h4>Items</h4>
         {formData.items.map((item, index) => (
-          <div key={item.itemId}>
+          <div key={item.lineItemId || item.itemId}>
             <input
               type="text"
               name="description"
@@ -107,7 +161,9 @@ function QuoteForm({ quote, onSave, onCancel }) {
           Add Item
         </button>
         <br />
-        <button type="submit">Save Quote</button>
+        <button type="submit" disabled={!customerInfo}>
+          Save Quote
+        </button>
         <button type="button" onClick={onCancel}>
           Cancel
         </button>
