@@ -124,8 +124,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Finalize a quote
-router.post('/:quoteId/finalize', async (req, res) => {
+// Submit a quote
+router.post('/:quoteId/submit', async (req, res) => {
   const { quoteId } = req.params;
 
   try {
@@ -137,13 +137,13 @@ router.post('/:quoteId/finalize', async (req, res) => {
 
     // Ensure the quote is in 'draft' status before finalizing
     if (quote.status !== 'draft') {
-      return res.status(400).json({ success: false, message: 'Only draft quotes can be finalized' });
+      return res.status(400).json({ success: false, message: 'Only draft quotes can be submitted' });
     }
 
-    // Update quote status to 'finalized'
-    await quote.update({ status: 'finalized' });
+    // Update quote status to 'submitted'
+    await quote.update({ status: 'submitted' });
 
-    res.json({ success: true, message: 'Quote finalized', quote });
+    res.json({ success: true, message: 'Quote submitted', quote });
   } catch (error) {
     console.error('Error finalizing quote:', error);
     res.status(500).json({ success: false, message: 'Server error' });

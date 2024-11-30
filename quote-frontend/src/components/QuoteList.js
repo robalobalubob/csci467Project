@@ -27,16 +27,16 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
 
   const handleFinalizeQuote = async () => {
     try {
-      const response = await api.post(`/quotes/${quote.quoteId}/finalize`);
+      const response = await api.post(`/quotes/${quote.quoteId}/submit`);
       if (response.data.success) {
         if (onQuoteUpdated) {
           onQuoteUpdated();
         }
       } else {
-        console.error('Failed to finalize quote: ', response.data.message);
+        console.error('Failed to submit quote: ', response.data.message);
       }
     } catch (error) {
-      console.error('Error finalizing quote: ', error);
+      console.error('Error submit quote: ', error);
     }
   }
 
