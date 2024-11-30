@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Quote, LineItem, LegacyCustomer } = require('../models');
+const { Quote, LineItem, LegacyCustomer, User } = require('../models');
 
 // Create a new quote
 router.post('/', async (req, res) => {
@@ -17,13 +17,16 @@ router.post('/', async (req, res) => {
         .status(400)
         .json({ success: false, message: 'Invalid customer ID' });
     }
-    
+
+    const lineItemsTotal = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
+
     const newQuote = await Quote.create({
       associateId,
       customerId,
       email,
       secretNotes,
       status: 'draft',
+      totalAmount: lineItemsTotal,
     });
 
     // Create associated line items
@@ -54,6 +57,10 @@ router.put('/:quoteId', async (req, res) => {
 
     if (!quote) {
       return res.status(404).json({ success: false, message: 'Quote not found' });
+    }
+
+    if (quote.status !== 'draft') {
+      return res.status(400).json({ success: false, message: 'Only draft quotes can be edited' });
     }
 
     // Update quote details
@@ -97,6 +104,9 @@ router.put('/:quoteId', async (req, res) => {
         await item.destroy();
       }
     }
+
+    const lineItemsTotal = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
+    await quote.update({ totalAmount: lineItemsTotal });
 
     res.json({ success: true, message: 'Quote updated' });
   } catch (error) {

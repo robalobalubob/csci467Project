@@ -78,7 +78,7 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
           {quote.items.map((item) => (
             <li key={item.lineItemId}>
               <p>Description: {item.description}</p>
-              <p>Price: ${item.price}</p>
+              <p>Price: ${parseFloat(item.price).toFixed(2)}</p>
             </li>
           ))}
         </ul>

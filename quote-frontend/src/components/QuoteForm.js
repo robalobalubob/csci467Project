@@ -45,7 +45,8 @@ function QuoteForm({ quote, onSave, onCancel }) {
 
   const handleItemChange = (index, e) => {
     const items = [...formData.items];
-    items[index][e.target.name] = e.target.value;
+    const value = e.target.name === 'price' ? parseFloat(e.target.value) || 0 : e.target.value;
+    items[index][e.target.name] = value;
     setFormData({ ...formData, items });
   };
 
@@ -71,7 +72,6 @@ function QuoteForm({ quote, onSave, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault();
   
-    // Prepare the data to be sent to the backend
     const dataToSend = {
       quoteId: formData.quoteId,
       associateId: formData.associateId,
@@ -79,7 +79,7 @@ function QuoteForm({ quote, onSave, onCancel }) {
       email: formData.email,
       secretNotes: formData.secretNotes,
       items: formData.items.map((item) => ({
-        lineItemId: item.lineItemId, // Include lineItemId if it exists
+        lineItemId: item.lineItemId,
         description: item.description,
         price: item.price,
       })),

@@ -37,7 +37,35 @@ module.exports = {
       status: {
         type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: 'draft'
+        defaultValue: 'draft',
+      },
+      discount: {
+        type: Sequelize.DECIMAL(10, 2),
+        allowNull: true,
+      },
+      discount_type: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      total_amount: {
+        type: Sequelize.DECIMAL(10, 2),
+        allowNull: true,
+      },
+      final_discount: {
+        type: Sequelize.DECIMAL(10, 2),
+        allowNull: true,
+      },
+      final_amount: {
+        type: Sequelize.DECIMAL(10, 2),
+        allowNull: true,
+      },
+      commission_rate: {
+        type: Sequelize.DECIMAL(10, 2),
+        allowNull: true,
+      },
+      processing_date: {
+        type: Sequelize.DATE,
+        allowNull: true,
       },
       created_at: {
         allowNull: false,

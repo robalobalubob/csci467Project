@@ -26,7 +26,8 @@ function QuoteSearchForm({ onSearch }) {
                     <label>Status:</label>
                     <select name="status" value={filters.status} onChange={handleChange}>
                         <option value="">Any</option>
-                        <option value="finalized">Finalized</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="unresolved">Unresolved</option>
                         <option value="sanctioned">Sanctioned</option>
                         <option value="ordered">Ordered</option>
                     </select>
@@ -41,13 +42,23 @@ function QuoteSearchForm({ onSearch }) {
                 </div>
                 <div>
                     <label>Associate ID:</label>
-                    <input name="associateId" value={filters.associateId} onChange={handleChange} />
+                    <input
+                        name="associateId"
+                        value={filters.associateId}
+                        onChange={handleChange}
+                        type="number"
+                    />
                 </div>
                 <div>
                     <label>Customer ID:</label>
-                    <input name="customerId" value={filters.customerId} onChange={handleChange} />
+                    <input
+                        name="customerId"
+                        value={filters.customerId}
+                        onChange={handleChange}
+                        type="number"
+                    />
                 </div>
-                    <button type="submit">Search Quotes</button>
+                <button type="submit">Search Quotes</button>
             </form>
         </div>
     );

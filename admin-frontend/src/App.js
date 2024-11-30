@@ -9,6 +9,7 @@ function App() {
   const [editingAssociate, setEditingAssociate] = useState(null);
   const [associates, setAssociates] = useState([]);
   const [quotes, setQuotes] = useState([]);
+  const [currentView, setCurrentView] = useState('associates'); // 'associates' or 'quotes'
 
   const fetchAssociates = async () => {
     try {
@@ -36,6 +37,7 @@ function App() {
     try {
       const response = await api.get('/quotes', { params: filters });
       setQuotes(response.data);
+      setCurrentView('quotes');
     } catch (error) {
       console.error('Error searching quotes:', error);
     }
@@ -44,21 +46,35 @@ function App() {
   return (
     <div>
       <h1>Admin Interface</h1>
-      {editingAssociate !== null ? (
-        <AssociateForm
-          associate={editingAssociate}
-          onSave={handleAssociateSave}
-          onCancel={handleAssociateCancel}
-        />
-      ) : (
-        <AssociateList
-          associates={associates}
-          onEdit={setEditingAssociate}
-          fetchAssociates={fetchAssociates}
-        />
+      <nav>
+        <button onClick={() => setCurrentView('associates')}>Manage Associates</button>
+        <button onClick={() => setCurrentView('quotes')}>View Quotes</button>
+      </nav>
+
+      {currentView === 'associates' && (
+        <>
+          {editingAssociate !== null ? (
+            <AssociateForm
+              associate={editingAssociate}
+              onSave={handleAssociateSave}
+              onCancel={handleAssociateCancel}
+            />
+          ) : (
+            <AssociateList
+              associates={associates}
+              onEdit={setEditingAssociate}
+              fetchAssociates={fetchAssociates}
+            />
+          )}
+        </>
       )}
-      <QuoteSearchForm onSearch={handleSearchQuotes} />
-      <QuoteList quotes={quotes} />
+
+      {currentView === 'quotes' && (
+        <>
+          <QuoteSearchForm onSearch={handleSearchQuotes} />
+          <QuoteList quotes={quotes} />
+        </>
+      )}
     </div>
   );
 }

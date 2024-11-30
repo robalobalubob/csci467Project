@@ -49,7 +49,7 @@ router.put('/associates/:associateId', async (req, res) => {
       await associate.update({
         name,
         userId,
-        password, // Handle password updates carefully
+        password,
         address,
       });
   
@@ -62,66 +62,80 @@ router.put('/associates/:associateId', async (req, res) => {
 
 // Delete a sales associate
 router.delete('/associates/:associateId', async (req, res) => {
-    const { associateId } = req.params;
-  
-    try {
-      const associate = await User.findByPk(associateId);
-  
-      if (!associate) {
-        return res.status(404).json({ success: false, message: 'Associate not found' });
-      }
-  
-      // Consider checking if the associate has any dependent records before deletion
-  
-      await associate.destroy();
-  
-      res.json({ success: true, message: 'Associate deleted' });
-    } catch (error) {
-      console.error('Error deleting associate:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
+  const { associateId } = req.params;
+
+  try {
+    const associate = await User.findByPk(associateId);
+
+    if (!associate) {
+      return res.status(404).json({ success: false, message: 'Associate not found' });
     }
+
+    const relatedQuotes = await Quote.count({ where: { associateId } });
+
+    if (relatedQuotes > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete associate with existing quotes',
+      });
+    }
+
+    await associate.destroy();
+
+    res.json({ success: true, message: 'Associate deleted' });
+  } catch (error) {
+    console.error('Error deleting associate:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Search and view quotes based on filters
 router.get('/quotes', async (req, res) => {
-    const { status, startDate, endDate, associateId, customerId } = req.query;
-  
-    const whereClause = {};
-  
-    if (status) {
-      whereClause.status = status;
-    }
-  
-    if (startDate && endDate) {
-      whereClause.createdAt = {
-        [Op.between]: [new Date(startDate), new Date(endDate)],
-      };
-    }
-  
-    if (associateId) {
-      whereClause.associateId = associateId;
-    }
-  
-    if (customerId) {
-      whereClause.customerId = customerId;
-    }
-  
-    try {
-      const quotes = await Quote.findAll({
-        where: whereClause,
-        include: [
-          {
-            model: LineItem,
-            as: 'items',
-          },
-        ],
-      });
-  
+  const { status, startDate, endDate, associateId, customerId } = req.query;
+
+  const whereClause = {};
+
+  if (status) {
+    whereClause.status = status;
+  }
+
+  if (startDate) {
+    whereClause.createdAt = {
+      ...(whereClause.createdAt || {}),
+      [Op.gte]: new Date(startDate),
+    };
+  }
+
+  if (endDate) {
+    whereClause.createdAt = {
+      ...(whereClause.createdAt || {}),
+      [Op.lte]: new Date(endDate),
+    };
+  }
+
+  if (associateId) {
+    whereClause.associateId = associateId;
+  }
+
+  if (customerId) {
+    whereClause.customerId = customerId;
+  }
+
+  try {
+    const quotes = await Quote.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: LineItem,
+          as: 'items',
+        },
+      ],
+    });
       res.json(quotes);
-    } catch (error) {
-      console.error('Error retrieving quotes:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
-    }
+  } catch (error) {
+    console.error('Error retrieving quotes:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 module.exports = router;

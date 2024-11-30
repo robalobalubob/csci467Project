@@ -2,7 +2,6 @@ import React from 'react';
 import api from '../services/api';
 
 function AssociateList({ associates, onEdit, fetchAssociates }) {
-
     const handleDelete = async (associateId) => {
         if (window.confirm('Are you sure you want to delete this associate?')) {
             try {
@@ -10,6 +9,7 @@ function AssociateList({ associates, onEdit, fetchAssociates }) {
                 fetchAssociates();
             } catch (error) {
                 console.error('Error deleting associate:', error);
+                alert('Error deleting associate');
             }
         }
     };
@@ -21,27 +21,27 @@ function AssociateList({ associates, onEdit, fetchAssociates }) {
             <table>
                 <thead>
                     <tr>
-                    <th>Associate ID</th>
-                    <th>Name</th>
-                    <th>User ID</th>
-                    <th>Address</th>
-                    <th>Accumulated Commission</th>
-                    <th>Actions</th>
+                        <th>Associate ID</th>
+                        <th>Name</th>
+                        <th>User ID</th>
+                        <th>Address</th>
+                        <th>Accumulated Commission</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {associates.map((associate) => (
-                    <tr key={associate.associateId}>
+                        <tr key={associate.associateId}>
                         <td>{associate.associateId}</td>
                         <td>{associate.name}</td>
                         <td>{associate.userId}</td>
                         <td>{associate.address}</td>
-                        <td>{associate.accumulatedCommission}</td>
+                        <td>{parseFloat(associate.accumulatedCommission).toFixed(2)}</td>
                         <td>
-                        <button onClick={() => onEdit(associate)}>Edit</button>
-                        <button onClick={() => handleDelete(associate.associateId)}>Delete</button>
+                            <button onClick={() => onEdit(associate)}>Edit</button>
+                            <button onClick={() => handleDelete(associate.associateId)}>Delete</button>
                         </td>
-                    </tr>
+                        </tr>
                     ))}
                 </tbody>
             </table>
