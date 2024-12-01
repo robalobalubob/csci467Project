@@ -218,9 +218,9 @@ router.post('/:quoteId/process-order', async (req, res) => {
 
         quote.finalDiscount = finalDiscountNumber;
         quote.finalAmount = quote.totalAmount - finalDiscountNumber;
-
+        const curTime = Date.now();
         const purchaseOrderData = {
-            order: `PO-${quote.quoteId}`,
+            order: `PO-${quote.quoteId}-${curTime}`,
             associate: quote.associateId.toString(),
             custid: quote.customerId.toString(),
             amount: quote.finalAmount.toFixed(2),
