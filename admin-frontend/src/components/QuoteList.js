@@ -4,7 +4,6 @@ import '../App.css';
 function QuoteList({ quotes }) {
     return (
         <div className="form-group">
-            <h2>Quotes</h2>
             {quotes.length === 0 ? (
                 <p>No quotes found.</p>
             ) : (
@@ -30,22 +29,26 @@ function QuoteList({ quotes }) {
                                 <td>{parseFloat(quote.totalAmount).toFixed(2)}</td>
                                 <td>{new Date(quote.createdAt).toLocaleString()}</td>
                                 <td>
-                                    <table className="nested-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Description</th>
-                                                <th>Price ($)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {quote.items.map((item) => (
-                                                <tr key={item.lineItemId}>
-                                                    <td>{item.description}</td>
-                                                    <td>{parseFloat(item.price).toFixed(2)}</td>
+                                    {quote.items.length > 0 ? (
+                                        <table className="nested-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Description</th>
+                                                    <th>Price ($)</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                {quote.items.map((item) => (
+                                                    <tr key={item.lineItemId}>
+                                                        <td>{item.description}</td>
+                                                        <td>{parseFloat(item.price).toFixed(2)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    ) : (
+                                        <p>No line items.</p>
+                                    )}
                                 </td>
                             </tr>
                         ))}

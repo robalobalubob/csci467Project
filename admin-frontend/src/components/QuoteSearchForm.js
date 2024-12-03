@@ -21,7 +21,6 @@ function QuoteSearchForm({ onSearch }) {
 
     return (
         <div className="form-group">
-            <h2>Search Quotes</h2>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label htmlFor="status">Status:</label>

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import api from '../services/api';
 import '../App.css';
 
@@ -16,6 +15,8 @@ function QuoteList({ quotes, onEdit, onQuoteUpdated }) {
               <th>Customer ID</th>
               <th>Email</th>
               <th>Status</th>
+              <th>Total Amount ($)</th>
+              <th>Line Items</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -31,11 +32,6 @@ function QuoteList({ quotes, onEdit, onQuoteUpdated }) {
 }
 
 function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
-  const [showItems, setShowItems] = useState(false);
-
-  const toggleItems = () => {
-    setShowItems((prevShowItems) => !prevShowItems);
-  };
 
   const handleFinalizeQuote = async () => {
     try {
@@ -75,6 +71,29 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
       <td>{quote.customerId}</td>
       <td>{quote.email}</td>
       <td>{quote.status}</td>
+      <td>{quote.totalAmount}</td>
+      <td>
+        {quote.items.length > 0 ? (
+            <table className="nested-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Price ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {quote.items.map((item) => (
+                        <tr key={item.lineItemId}>
+                            <td>{item.description}</td>
+                            <td>{parseFloat(item.price).toFixed(2)}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        ) : (
+            <p>No line items.</p>
+        )}
+      </td>
       <td>
         {quote.status === 'draft' && (
           <>
@@ -83,32 +102,7 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
             <button className="button button-secondary" onClick={handleDeleteQuote}>Delete</button>
           </>
         )}
-        <button className="button" onClick={toggleItems}>
-          {showItems ? 'Hide Items' : 'Show Items'}
-        </button>
       </td>
-      {showItems && (
-        <tr>
-          <td colSpan="5">
-            <table className="table nested-table">
-              <thead>
-                <tr>
-                  <th>Description</th>
-                  <th>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quote.items.map((item) => (
-                  <tr key={item.lineItemId}>
-                    <td>{item.description}</td>
-                    <td>${parseFloat(item.price).toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </td>
-        </tr>
-      )}
     </tr>
   );
 }

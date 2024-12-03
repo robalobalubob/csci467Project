@@ -1,86 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import AssociateList from './components/AssociateList';
 import AssociateForm from './components/AssociateForm';
-import QuoteSearchForm from './components/QuoteSearchForm';
-import QuoteList from './components/QuoteList';
-import api from './services/api';
+import QuotePage from './components/QuotePage';
 import './App.css';
 
 function App() {
-  const [editingAssociate, setEditingAssociate] = useState(null);
-  const [associates, setAssociates] = useState([]);
-  const [quotes, setQuotes] = useState([]);
-  const [currentView, setCurrentView] = useState('associates'); // 'associates' or 'quotes'
-
-  const fetchAssociates = async () => {
-    try {
-      const response = await api.get('/associates');
-      setAssociates(response.data);
-    } catch (error) {
-      console.error('Error fetching associates:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchAssociates();
-  }, []);
-
-  const handleAssociateSave = () => {
-    setEditingAssociate(null);
-    fetchAssociates();
-  };
-
-  const handleAssociateCancel = () => {
-    setEditingAssociate(null);
-  };
-
-  const handleSearchQuotes = async (filters) => {
-    try {
-      const response = await api.get('/quotes', { params: filters });
-      setQuotes(response.data);
-      setCurrentView('quotes');
-    } catch (error) {
-      console.error('Error searching quotes:', error);
-    }
-  };
-
   return (
-    <div className='container'>
-      <h1>Admin Interface</h1>
-      <nav>
-        <button className={`button ${currentView === 'associates' ? 'active' : ''}`} onClick={() => setCurrentView('associates')}>
-          Manage Associates
-        </button>
-        <button className={`button ${currentView === 'quotes' ? 'active' : ''}`} onClick={() => setCurrentView('quotes')}>
-          View Quotes
-        </button>
-      </nav>
+    <Router>
+      <div className='container'>
+        <h1>Admin Interface</h1>
+        <nav>
+          <NavLink
+            to="/associates"
+            className={({ isActive }) => `button ${isActive ? 'active' : ''}`}
+          >
+            Manage Associates
+          </NavLink>
+          <NavLink
+            to="/quotes"
+            className={({ isActive }) => `button button-secondary ${isActive ? 'active' : ''}`}
+          >
+            View Quotes
+          </NavLink>
+        </nav>
 
-      {currentView === 'associates' && (
-        <>
-          {editingAssociate !== null ? (
-            <AssociateForm
-              associate={editingAssociate}
-              onSave={handleAssociateSave}
-              onCancel={handleAssociateCancel}
-            />
-          ) : (
-            <AssociateList
-              associates={associates}
-              onEdit={setEditingAssociate}
-              fetchAssociates={fetchAssociates}
-            />
-          )}
-        </>
-      )}
+        <Routes>
+          <Route path="/" element={<Navigate to="/associates" replace />} />
 
-      {currentView === 'quotes' && (
-        <>
-          <QuoteSearchForm onSearch={handleSearchQuotes} />
-          <QuoteList quotes={quotes} />
-        </>
-      )}
-    </div>
+          <Route path="/associates" element={<AssociateList />} />
+          <Route path="/associates/add" element={<AssociateForm />} />
+          <Route path="/associates/edit/:associateId" element={<AssociateForm />} />
+
+          <Route path="/quotes" element={<QuotePage />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

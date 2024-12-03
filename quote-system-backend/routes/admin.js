@@ -14,6 +14,21 @@ router.get('/associates', async (req, res) => {
     }
 });
 
+// Retrieve a single sales associate by ID
+router.get('/associates/:associateId', async (req, res) => {
+  const { associateId } = req.params;
+  try {
+      const associate = await User.findByPk(associateId);
+      if (!associate) {
+          return res.status(404).json({ success: false, message: 'Associate not found' });
+      }
+      res.json(associate);
+  } catch (error) {
+      console.error('Error retrieving associate:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // Create a new sales associate
 router.post('/associates', async (req, res) => {
     const { name, userId, password, address } = req.body;

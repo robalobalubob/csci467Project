@@ -1,3 +1,4 @@
+/* Reset some default browser styles */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -99,7 +100,7 @@ nav button:active, nav a.button:active {
 /* Active Navigation Button */
 .button.active,
 .button-secondary.active {
-  background-color: #1abc9c; /* Example color */
+  background-color: #1abc9c; 
   color: #ffffff;
 }
 
@@ -138,7 +139,7 @@ nav button:active, nav a.button:active {
   background-color: #f1f1f1;
 }
 
-/* Nested Table Styles (Optional) */
+/* Nested Table Styles */
 .nested-table {
   margin-top: 10px;
   box-shadow: none;
@@ -160,13 +161,34 @@ nav button:active, nav a.button:active {
     padding: 6px 12px;
     font-size: 12px;
   }
+
+  .add-associate-button {
+    width: 100%; /* Full width on small screens */
+    margin-bottom: 15px;
+  }
+
+  .edit-button, .delete-button {
+    width: 48%; /* Nearly half width each */
+    margin-bottom: 10px;
+  }
+
+  .flex {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Ensure the toggle button has adequate spacing */
+  .toggle-filters-button {
+    width: 100%; /* Full width on small screens */
+    margin-bottom: 15px;
+  }
 }
 
 /* Form Input Styles */
 input[type="text"],
 input[type="number"],
 input[type="password"],
-input[type="email"], /* Ensured inclusion */
+input[type="email"], 
 select,
 textarea {
   width: 100%;
@@ -182,7 +204,7 @@ textarea {
 input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="password"]:focus,
-input[type="email"]:focus, /* Ensured inclusion */
+input[type="email"]:focus, 
 select:focus,
 textarea:focus {
   border-color: #3498db;
@@ -190,14 +212,18 @@ textarea:focus {
   outline: none;
 }
 
-/* Error State for Email Input */
-input[type="email"].error {
+/* Error State for Inputs */
+input.error,
+select.error,
+textarea.error {
   border-color: #e74c3c;
   box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
 }
 
-/* Success State for Email Input */
-input[type="email"].success {
+/* Success State for Inputs */
+input.success,
+select.success,
+textarea.success {
   border-color: #27ae60;
   box-shadow: 0 0 5px rgba(39, 174, 96, 0.5);
 }
@@ -210,7 +236,7 @@ label {
   color: #2c3e50;
 }
 
-/* Email Input Container with Icon (Optional) */
+/* Email Input Container with Icon */
 .email-input-container {
   position: relative;
   width: 100%;
@@ -228,7 +254,7 @@ label {
 }
 
 .email-input-container input[type="email"] {
-  padding-left: 40px; /* Adjust to accommodate the icon */
+  padding-left: 40px; 
 }
 
 /* Additional Utility Classes */
@@ -237,7 +263,7 @@ label {
 .flex {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
 }
 
