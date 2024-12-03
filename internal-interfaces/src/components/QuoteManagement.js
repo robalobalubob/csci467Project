@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import QuoteList from './QuoteList';
 import QuoteEditor from './QuoteEditor';
+import '../App.css';
 
 function QuoteManagement() {
   const [quotes, setQuotes] = useState([]);
@@ -40,7 +41,7 @@ function QuoteManagement() {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Quote Management</h2>
       {editingQuote ? (
         <QuoteEditor

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import '../App.css';
 
 function PurchaseOrderProcessing() {
   const [sanctionedQuotes, setSanctionedQuotes] = useState([]);
@@ -54,42 +55,60 @@ function PurchaseOrderProcessing() {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Purchase Order Processing</h2>
       {selectedQuote ? (
-        <div>
+        <div className="form-group">
           <h3>Quote ID: {selectedQuote.quoteId}</h3>
           <p>Customer ID: {selectedQuote.customerId}</p>
           <p>Total Amount: ${parseFloat(selectedQuote.totalAmount).toFixed(2)}</p>
-          <div>
-            <label>Final Discount:</label>
+          <div className="form-group">
+            <label htmlFor="finalDiscount">Final Discount:</label>
             <input
               type="number"
+              id="finalDiscount"
               value={finalDiscount}
               onChange={(e) => setFinalDiscount(parseFloat(e.target.value) || 0)}
+              min="0"
+              max={selectedQuote.totalAmount}
             />
           </div>
-          {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-          <button onClick={handleProcessOrder} disabled={isProcessing}>
-            {isProcessing ? 'Processing...' : 'Process Purchase Order'}
-          </button>
-          <button onClick={() => setSelectedQuote(null)}>Cancel</button>
+          {errorMessage && <p className="error-message">{errorMessage}</p>}
+          <div className="flex">
+            <button className="button" onClick={handleProcessOrder} disabled={isProcessing}>
+              {isProcessing ? 'Processing...' : 'Process Purchase Order'}
+            </button>
+            <button className="button button-secondary" onClick={() => setSelectedQuote(null)}>Cancel</button>
+          </div>
         </div>
       ) : (
-        <div>
+        <div className="form-group">
           <h3>Sanctioned Quotes</h3>
           {sanctionedQuotes.length === 0 ? (
             <p>No sanctioned quotes available for processing.</p>
           ) : (
-            <ul>
-              {sanctionedQuotes.map((quote) => (
-                <li key={quote.quoteId}>
-                  <p>Quote ID: {quote.quoteId}</p>
-                  <p>Total Amount: ${parseFloat(quote.totalAmount).toFixed(2)}</p>
-                  <button onClick={() => setSelectedQuote(quote)}>Select Quote</button>
-                </li>
-              ))}
-            </ul>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Quote ID</th>
+                  <th>Customer ID</th>
+                  <th>Total Amount</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sanctionedQuotes.map((quote) => (
+                  <tr key={quote.quoteId}>
+                    <td>{quote.quoteId}</td>
+                    <td>{quote.customerId}</td>
+                    <td>${parseFloat(quote.totalAmount).toFixed(2)}</td>
+                    <td>
+                      <button className="button button-secondary" onClick={() => setSelectedQuote(quote)}>Select Quote</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       )}

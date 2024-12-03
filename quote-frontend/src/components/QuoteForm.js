@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { ReactComponent as EmailIcon } from '../email.svg';
 import api from '../services/api';
+import '../App.css';
 
 function QuoteForm({ quote, onSave, onCancel }) {
   const [formData, setFormData] = useState({
@@ -14,6 +16,7 @@ function QuoteForm({ quote, onSave, onCancel }) {
 
   const [customerInfo, setCustomerInfo] = useState(null);
   const [customerError, setCustomerError] = useState('');
+  const [emailValid, setEmailValid] = useState(null);
 
   useEffect(() => {
     const fetchCustomerInfo = async () => {
@@ -36,10 +39,23 @@ function QuoteForm({ quote, onSave, onCancel }) {
     fetchCustomerInfo();
   }, [formData.customerId]);
 
+  const validateEmail = (email) => {
+    const regex = /^\S+@\S+\.\S+$/;
+    return regex.test(email);
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // If the field is email, validate it
+    if (name === 'email') {
+      const isValid = validateEmail(value);
+      setEmailValid(isValid);
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
@@ -71,6 +87,11 @@ function QuoteForm({ quote, onSave, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!validateEmail(formData.email)) {
+      setEmailValid(false);
+      return;
+    }
   
     const dataToSend = {
       quoteId: formData.quoteId,
@@ -89,13 +110,14 @@ function QuoteForm({ quote, onSave, onCancel }) {
   };
 
   return (
-    <div>
+    <div className="container">
       <h3>{quote.quoteId ? 'Edit Quote' : 'New Quote'}</h3>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Customer ID:</label>
+        <div className="form-group">
+          <label htmlFor="customerId">Customer ID:</label>
           <input
             type="text"
+            id="customerId"
             name="customerId"
             value={formData.customerId || ''}
             onChange={handleChange}
@@ -103,7 +125,7 @@ function QuoteForm({ quote, onSave, onCancel }) {
           />
         </div>
         {customerInfo && (
-          <div>
+          <div className="form-group">
             <h4>Customer Information</h4>
             <p><strong>Name:</strong> {customerInfo.name}</p>
             <p><strong>City:</strong> {customerInfo.city}</p>
@@ -112,61 +134,86 @@ function QuoteForm({ quote, onSave, onCancel }) {
           </div>
         )}
         {customerError && (
-          <p style={{ color: 'red' }}>{customerError}</p>
+          <p className="error-message">{customerError}</p>
         )}
-        <div>
-          <label>Customer Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email || ''}
-            onChange={handleChange}
-            required
-          />
+        <div className="form-group">
+          <label htmlFor="email">Customer Email:</label>
+          <div className="email-input-container">
+            <EmailIcon className="email-icon" />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email || ''}
+              onChange={handleChange}
+              required
+              className={emailValid === false ? 'error' : emailValid === true ? 'success' : ''}
+              aria-invalid={emailValid === false}
+              aria-describedby="email-feedback"
+            />
+          </div>
+          {emailValid === false && (
+            <p className="error-message" id="email-feedback" role="alert">
+              Please enter a valid email address.
+            </p>
+          )}
+          {emailValid === true && (
+            <p className="success-message" id="email-feedback" role="status">
+              Email looks good!
+            </p>
+          )}
         </div>
-        <div>
-          <label>Secret Notes:</label>
+        <div className="form-group">
+          <label htmlFor="secretNotes">Secret Notes:</label>
           <textarea
+            id="secretNotes"
             name="secretNotes"
             value={formData.secretNotes || ''}
             onChange={handleChange}
+            rows="4"
           ></textarea>
         </div>
         <h4>Items</h4>
         {formData.items.map((item, index) => (
-          <div key={item.lineItemId || item.itemId}>
+          <div key={item.lineItemId || item.itemId} className="form-group">
+            <label htmlFor={`description-${index}`}>Item Description:</label>
             <input
               type="text"
+              id={`description-${index}`}
               name="description"
               placeholder="Item Description"
               value={item.description}
               onChange={(e) => handleItemChange(index, e)}
               required
             />
+            <label htmlFor={`price-${index}`}>Price:</label>
             <input
               type="number"
               step="0.01"
+              id={`price-${index}`}
               name="price"
               placeholder="Price"
               value={item.price}
               onChange={(e) => handleItemChange(index, e)}
               required
             />
-            <button type="button" onClick={() => removeItem(index)}>
+            <button className="button button-secondary" type="button" onClick={() => removeItem(index)}>
               Remove Item
             </button>
           </div>
         ))}
-        <button type="button" onClick={addItem}>
+        <button className="button" type="button" onClick={addItem}>
           Add Item
         </button>
         <br />
-        <button type="submit" disabled={!customerInfo}>
-          Save Quote
-        </button>
-        <button type="button" onClick={onCancel}>
-          Cancel
-        </button>
+        <div className="flex mt-20">
+          <button className="button" type="submit" disabled={!customerInfo}>
+            Save Quote
+          </button>
+          <button className="button button-secondary" type="button" onClick={onCancel}>
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
   );

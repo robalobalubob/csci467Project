@@ -1,33 +1,56 @@
 import React from 'react';
+import '../App.css';
 
 function QuoteList({ quotes }) {
     return (
-        <div>
+        <div className="form-group">
             <h2>Quotes</h2>
             {quotes.length === 0 ? (
                 <p>No quotes found.</p>
             ) : (
-                <ul>
-                    {quotes.map((quote) => (
-                        <li key={quote.quoteId}>
-                            <p><strong>Quote ID:</strong> {quote.quoteId}</p>
-                            <p><strong>Status:</strong> {quote.status}</p>
-                            <p><strong>Associate ID:</strong> {quote.associateId}</p>
-                            <p><strong>Customer ID:</strong> {quote.customerId}</p>
-                            <p><strong>Total Amount:</strong> ${parseFloat(quote.totalAmount).toFixed(2)}</p>
-                            <p><strong>Created At:</strong> {new Date(quote.createdAt).toLocaleString()}</p>
-                            <h4>Line Items:</h4>
-                            <ul>
-                                {quote.items.map((item) => (
-                                <li key={item.lineItemId}>
-                                    <p>Description: {item.description}</p>
-                                    <p>Price: ${parseFloat(item.price).toFixed(2)}</p>
-                                </li>
-                                ))}
-                            </ul>
-                        </li>
-                    ))}
-                </ul>
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <th>Quote ID</th>
+                            <th>Status</th>
+                            <th>Associate ID</th>
+                            <th>Customer ID</th>
+                            <th>Total Amount ($)</th>
+                            <th>Created At</th>
+                            <th>Line Items</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {quotes.map((quote) => (
+                            <tr key={quote.quoteId}>
+                                <td>{quote.quoteId}</td>
+                                <td>{quote.status}</td>
+                                <td>{quote.associateId}</td>
+                                <td>{quote.customerId}</td>
+                                <td>{parseFloat(quote.totalAmount).toFixed(2)}</td>
+                                <td>{new Date(quote.createdAt).toLocaleString()}</td>
+                                <td>
+                                    <table className="nested-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Description</th>
+                                                <th>Price ($)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {quote.items.map((item) => (
+                                                <tr key={item.lineItemId}>
+                                                    <td>{item.description}</td>
+                                                    <td>{parseFloat(item.price).toFixed(2)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             )}
         </div>
     );

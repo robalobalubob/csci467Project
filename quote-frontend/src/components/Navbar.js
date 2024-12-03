@@ -1,5 +1,6 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import '../App.css';
 
 function Navbar({ user, setUser }) {
   const navigate = useNavigate();
@@ -10,17 +11,15 @@ function Navbar({ user, setUser }) {
   };
 
   return (
-    <nav className="navbar">
-      <ul>
-        {user ? (
-          <>
-            <li>Welcome, {user.name}</li>
-            <li><button onClick={handleLogout}>Logout</button></li>
-          </>
-        ) : (
-          <li>Please log in</li>
-        )}
-      </ul>
+    <nav>
+      {user ? (
+        <div className="flex">
+          <NavLink to="/dashboard" className="button">Dashboard</NavLink>
+          <button className="button button-secondary" onClick={handleLogout}>Logout</button>
+        </div>
+      ) : (
+        <NavLink to="/" className="button">Login</NavLink>
+      )}
     </nav>
   );
 }

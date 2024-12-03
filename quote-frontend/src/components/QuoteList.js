@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../services/api';
+import '../App.css';
 
 function QuoteList({ quotes, onEdit, onQuoteUpdated }) {
   return (
@@ -8,11 +9,22 @@ function QuoteList({ quotes, onEdit, onQuoteUpdated }) {
       {quotes.length === 0 ? (
         <p>No quotes found.</p>
       ) : (
-        <ul>
-          {quotes.map((quote) => (
-            <QuoteItem key={quote.quoteId} quote={quote} onEdit={onEdit} onQuoteUpdated={onQuoteUpdated} />
-          ))}
-        </ul>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Quote ID</th>
+              <th>Customer ID</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {quotes.map((quote) => (
+              <QuoteItem key={quote.quoteId} quote={quote} onEdit={onEdit} onQuoteUpdated={onQuoteUpdated} />
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );
@@ -58,32 +70,46 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
   };
 
   return (
-    <li>
-      <p>Quote ID: {quote.quoteId}</p>
-      <p>Customer ID: {quote.customerId}</p>
-      <p>Email: {quote.email}</p>
-      <p>Status: {quote.status}</p>
-      {quote.status === 'draft' && (
-        <>
-        <button onClick={() => onEdit(quote)}>Edit</button>
-        <button onClick={handleFinalizeQuote}>Submit</button>
-        <button onClick={handleDeleteQuote}>Delete</button>
-        </>
-      )}
-      <button onClick={toggleItems}>
-        {showItems ? 'Hide Items' : 'Show Items'}
-      </button>
+    <tr>
+      <td>{quote.quoteId}</td>
+      <td>{quote.customerId}</td>
+      <td>{quote.email}</td>
+      <td>{quote.status}</td>
+      <td>
+        {quote.status === 'draft' && (
+          <>
+            <button className="button button-secondary" onClick={() => onEdit(quote)}>Edit</button>
+            <button className="button button-secondary" onClick={handleFinalizeQuote}>Submit</button>
+            <button className="button button-secondary" onClick={handleDeleteQuote}>Delete</button>
+          </>
+        )}
+        <button className="button" onClick={toggleItems}>
+          {showItems ? 'Hide Items' : 'Show Items'}
+        </button>
+      </td>
       {showItems && (
-        <ul>
-          {quote.items.map((item) => (
-            <li key={item.lineItemId}>
-              <p>Description: {item.description}</p>
-              <p>Price: ${parseFloat(item.price).toFixed(2)}</p>
-            </li>
-          ))}
-        </ul>
+        <tr>
+          <td colSpan="5">
+            <table className="table nested-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quote.items.map((item) => (
+                  <tr key={item.lineItemId}>
+                    <td>{item.description}</td>
+                    <td>${parseFloat(item.price).toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </td>
+        </tr>
       )}
-    </li>
+    </tr>
   );
 }
 

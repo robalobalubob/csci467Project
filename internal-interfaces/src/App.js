@@ -2,22 +2,22 @@ import React from 'react';
 import { Routes, Route, NavLink } from 'react-router-dom';
 import QuoteManagement from './components/QuoteManagement.js';
 import PurchaseOrderProcessing from './components/PurchaseOrderProcessing.js';
+import './App.css';
 
 function App() {
   return (
-    <div>
+    <div className="container">
       <h1>Internal Interfaces</h1>
       <nav>
         <NavLink
           to="/quotes"
-          style={({ isActive }) => ({ fontWeight: isActive ? 'bold' : 'normal' })}
+          className={({ isActive }) => `button ${isActive ? 'active' : ''}`}
         >
           Quote Management
         </NavLink>
-        {' | '}
         <NavLink
           to="/purchase-orders"
-          style={({ isActive }) => ({ fontWeight: isActive ? 'bold' : 'normal' })}
+          className={({ isActive }) => `button button-secondary ${isActive ? 'active' : ''}`}
         >
           Purchase Order Processing
         </NavLink>

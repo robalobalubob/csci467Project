@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../App.css';
 
 function QuoteSearchForm({ onSearch }) {
     const [filters, setFilters] = useState({
@@ -19,46 +20,72 @@ function QuoteSearchForm({ onSearch }) {
     };
 
     return (
-        <div>
+        <div className="form-group">
             <h2>Search Quotes</h2>
             <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Status:</label>
-                    <select name="status" value={filters.status} onChange={handleChange}>
+                <div className="form-group">
+                    <label htmlFor="status">Status:</label>
+                    <select 
+                        id="status" 
+                        name="status" 
+                        value={filters.status} 
+                        onChange={handleChange}
+                    >
                         <option value="">Any</option>
+                        <option value="draft">Draft</option>
                         <option value="submitted">Submitted</option>
                         <option value="unresolved">Unresolved</option>
                         <option value="sanctioned">Sanctioned</option>
                         <option value="ordered">Ordered</option>
                     </select>
                 </div>
-                <div>
-                    <label>Start Date:</label>
-                    <input type="date" name="startDate" value={filters.startDate} onChange={handleChange} />
+                <div className="form-group">
+                    <label htmlFor="startDate">Start Date:</label>
+                    <input 
+                        type="date" 
+                        id="startDate" 
+                        name="startDate" 
+                        value={filters.startDate} 
+                        onChange={handleChange} 
+                    />
                 </div>
-                <div>
-                    <label>End Date:</label>
-                    <input type="date" name="endDate" value={filters.endDate} onChange={handleChange} />
+                <div className="form-group">
+                    <label htmlFor="endDate">End Date:</label>
+                    <input 
+                        type="date" 
+                        id="endDate" 
+                        name="endDate" 
+                        value={filters.endDate} 
+                        onChange={handleChange} 
+                    />
                 </div>
-                <div>
-                    <label>Associate ID:</label>
+                <div className="form-group">
+                    <label htmlFor="associateId">Associate ID:</label>
                     <input
+                        id="associateId"
                         name="associateId"
                         value={filters.associateId}
                         onChange={handleChange}
                         type="number"
+                        min="0"
+                        placeholder="Enter Associate ID"
                     />
                 </div>
-                <div>
-                    <label>Customer ID:</label>
+                <div className="form-group">
+                    <label htmlFor="customerId">Customer ID:</label>
                     <input
+                        id="customerId"
                         name="customerId"
                         value={filters.customerId}
                         onChange={handleChange}
                         type="number"
+                        min="0"
+                        placeholder="Enter Customer ID"
                     />
                 </div>
-                <button type="submit">Search Quotes</button>
+                <div className="flex">
+                    <button className='button' type="submit">Search Quotes</button>
+                </div>
             </form>
         </div>
     );

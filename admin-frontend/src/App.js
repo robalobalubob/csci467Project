@@ -4,6 +4,7 @@ import AssociateForm from './components/AssociateForm';
 import QuoteSearchForm from './components/QuoteSearchForm';
 import QuoteList from './components/QuoteList';
 import api from './services/api';
+import './App.css';
 
 function App() {
   const [editingAssociate, setEditingAssociate] = useState(null);
@@ -44,11 +45,15 @@ function App() {
   };
 
   return (
-    <div>
+    <div className='container'>
       <h1>Admin Interface</h1>
       <nav>
-        <button onClick={() => setCurrentView('associates')}>Manage Associates</button>
-        <button onClick={() => setCurrentView('quotes')}>View Quotes</button>
+        <button className={`button ${currentView === 'associates' ? 'active' : ''}`} onClick={() => setCurrentView('associates')}>
+          Manage Associates
+        </button>
+        <button className={`button ${currentView === 'quotes' ? 'active' : ''}`} onClick={() => setCurrentView('quotes')}>
+          View Quotes
+        </button>
       </nav>
 
       {currentView === 'associates' && (

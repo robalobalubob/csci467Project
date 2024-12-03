@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../services/api';
+import '../App.css';
 
 function AssociateForm({ associate, onSave, onCancel }) {
     const [formData, setFormData] = useState({
@@ -54,38 +55,63 @@ function AssociateForm({ associate, onSave, onCancel }) {
     };
 
     return (
-        <div>
-            <h2>{associate && associate.associateId ? 'Edit Associate' : 'Add New Associate'}</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Name:</label>
-                    <input name="name" value={formData.name} onChange={handleChange} required />
-                    {errors.name && <p style={{ color: 'red' }}>{errors.name}</p>}
-                </div>
-                <div>
-                    <label>User ID:</label>
-                    <input name="userId" value={formData.userId} onChange={handleChange} required />
-                    {errors.userId && <p style={{ color: 'red' }}>{errors.userId}</p>}
-                </div>
-                <div>
-                    <label>Password:</label>
-                    <input
-                        name="password"
-                        type="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required={!associate || !associate.associateId}
-                    />
-                    {errors.password && <p style={{ color: 'red' }}>{errors.password}</p>}
-                    {associate && associate.associateId && <p>Leave blank to keep current password.</p>}
-                </div>
-                <div>
-                    <label>Address:</label>
-                    <input name="address" value={formData.address} onChange={handleChange} />
-                </div>
-                <button type="submit">Save Associate</button>
-                <button type="button" onClick={onCancel}>Cancel</button>
-            </form>
+        <div className='container'>
+            <div className="form-group">
+                <h2>{associate && associate.associateId ? 'Edit Associate' : 'Add New Associate'}</h2>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label htmlFor="name">Name:</label>
+                        <input 
+                            id="name" 
+                            name="name" 
+                            type='text' 
+                            value={formData.name} 
+                            onChange={handleChange} 
+                            required 
+                        />
+                        {errors.name && <p className="error-message">{errors.name}</p>}
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="userId">User ID:</label>
+                        <input 
+                            id="userId" 
+                            name="userId" 
+                            type='text' 
+                            value={formData.userId} 
+                            onChange={handleChange} 
+                            required 
+                        />
+                        {errors.userId && <p className="error-message">{errors.userId}</p>}
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="password">Password:</label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required={!associate || !associate.associateId}
+                        />
+                        {errors.password && <p className="error-message">{errors.password}</p>}
+                        {associate && associate.associateId && <p className="success-message">Leave blank to keep current password.</p>}
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="address">Address:</label>
+                        <input 
+                            id="address" 
+                            name="address" 
+                            type='text' 
+                            value={formData.address} 
+                            onChange={handleChange} 
+                        />
+                    </div>
+                    <div className="flex">
+                        <button className='button' type="submit">Save Associate</button>
+                        <button className='button button-secondary' type="button" onClick={onCancel}>Cancel</button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }

@@ -1,25 +1,44 @@
 import React from 'react';
+import '../App.css';
 
 function QuoteList({ quotes, onEdit, onSanction }) {
   return (
-    <div>
+    <div className="form-group">
       <h3>Quotes</h3>
       {quotes.length === 0 ? (
         <p>No quotes found.</p>
       ) : (
-        <ul>
-          {quotes.map((quote) => (
-            <li key={quote.quoteId}>
-              <p>Quote ID: {quote.quoteId}</p>
-              <p>Customer ID: {quote.customerId}</p>
-              <p>Status: {quote.status}</p>
-              <button onClick={() => onEdit(quote)}>Edit Quote</button>
-              {quote.status === 'unresolved' && (
-                <button onClick={() => onSanction(quote)}>Sanction and Send to Customer</button>
-              )}
-            </li>
-          ))}
-        </ul>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Quote ID</th>
+              <th>Customer ID</th>
+              <th>Total Amount</th>
+              <th>Discount</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {quotes.map((quote) => (
+              <tr key={quote.quoteId}>
+                <td>{quote.quoteId}</td>
+                <td>{quote.customerId}</td>
+                <td>${parseFloat(quote.totalAmount).toFixed(2)}</td>
+                <td>
+                  {quote.discountType === 'percentage' ? `${quote.discount}%` : `$${parseFloat(quote.discount).toFixed(2)}`}
+                </td>
+                <td>{quote.status}</td>
+                <td>
+                  <button className="button button-secondary" onClick={() => onEdit(quote)}>Edit Quote</button>
+                  {quote.status === 'unresolved' && (
+                    <button className="button button-secondary" onClick={() => onSanction(quote)}>Sanction & Send</button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );

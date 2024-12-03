@@ -78,7 +78,7 @@ function Dashboard({ user }) {
   }, [user.associate_id])
 
   return (
-    <div>
+    <div className="container">
       <h2>Welcome, {user.name}</h2>
       {editingQuote ? (
         <QuoteForm
@@ -88,7 +88,9 @@ function Dashboard({ user }) {
         />
       ) : (
         <>
-          <button onClick={handleCreateQuote}>Create New Quote</button>
+          <div className="flex mb-20">
+            <button className="button" onClick={handleCreateQuote}>Create New Quote</button>
+          </div>
           <QuoteList
             quotes={quotes.filter(
               (quote) =>

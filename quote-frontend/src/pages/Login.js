@@ -50,20 +50,36 @@ function Login({ setUser }) {
   };
 
   return (
-    <div>
-      <h2>Associate Login</h2>
-      {error && <p style={{color: 'red'}}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>User ID:</label>
-          <input type="text" name="user_id" value={user_id} onChange={handleChange} required />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input type="password" name="password" value={password} onChange={handleChange} required />
-        </div>
-        <button type="submit">Login</button>
-      </form>
+    <div className="container">
+      <div className="login-form">
+        <h2>Associate Login</h2>
+        {error && <p className="error-message">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="user_id">User ID:</label>
+            <input 
+              type="text" 
+              id="user_id" 
+              name="user_id" 
+              value={user_id} 
+              onChange={handleChange} 
+              required 
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password:</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              value={password} 
+              onChange={handleChange} 
+              required 
+            />
+          </div>
+          <button className="button" type="submit">Login</button>
+        </form>
+      </div>
     </div>
   );
 }

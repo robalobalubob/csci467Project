@@ -10,20 +10,22 @@ function App() {
   const [user, setUser] = useState(null);
   return (
     <Router>
-      <Navbar user={user} setUser={setUser} />
-      <Routes>
-        <Route path="/" element={<Login setUser={setUser} />} />
+      <div className='container'>
+        <Navbar user={user} setUser={setUser} />
+        <Routes>
+          <Route path="/" element={<Login setUser={setUser} />} />
 
-        <Route 
-          path="/dashboard" 
-          element={
-            <PrivateRoute user={user}>
-              <Dashboard user={user} />
-            </PrivateRoute>
-          } 
-        />
-        
-      </Routes>
+          <Route 
+            path="/dashboard" 
+            element={
+              <PrivateRoute user={user}>
+                <Dashboard user={user} />
+              </PrivateRoute>
+            } 
+          />
+          
+        </Routes>
+      </div>
     </Router>
   );
 }
