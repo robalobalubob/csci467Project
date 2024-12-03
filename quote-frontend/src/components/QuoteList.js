@@ -51,14 +51,17 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
     try {
       const response = await api.post(`/quotes/${quote.quoteId}/submit`);
       if (response.data.success) {
+        alert("Quote Submitted Successfully");
         if (onQuoteUpdated) {
           onQuoteUpdated();
         }
       } else {
         console.error('Failed to submit quote: ', response.data.message);
+        alert(`Failed to submit quote: ${response.data.message}`);
       }
     } catch (error) {
       console.error('Error submit quote: ', error);
+      alert('Error submitting quote');
     }
   }
 
@@ -71,17 +74,22 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
       try {
         const response = await api.delete(`/quotes/${quote.quoteId}`);
         if (response.data.success) {
+          alert('Quote deleted successfully');
           if (onQuoteUpdated) {
             onQuoteUpdated();
           }
         } else {
           console.error('Failed to delete quote: ', response.data.message);
+          alert(`Failed to delete quote: ${response.data.message}`);
         }
       } catch (error) {
         console.error('Error deleting quote: ', error);
+        alert('Error deleting quote');
       }
     }
   };
+
+  const items = Array.isArray(quote.items) ? quote.items : [];
 
   return (
     <tr>

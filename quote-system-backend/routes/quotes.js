@@ -7,7 +7,7 @@ router.post('/', async (req, res) => {
   const { associateId, customerId, email, secretNotes, items } = req.body;
 
   try {
-
+    // Validate customer existence
     const customer = await LegacyCustomer.findOne({
       where: { id: customerId },
     });
@@ -18,8 +18,17 @@ router.post('/', async (req, res) => {
         .json({ success: false, message: 'Invalid customer ID' });
     }
 
+    // Validate that at least one line item exists
+    if (!Array.isArray(items) || items.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'At least one line item is required.' });
+    }
+
+    // Calculate total amount
     const lineItemsTotal = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
 
+    // Create the quote
     const newQuote = await Quote.create({
       associateId,
       customerId,
@@ -30,16 +39,23 @@ router.post('/', async (req, res) => {
     });
 
     // Create associated line items
-    if (items && items.length > 0) {
-      const lineItems = items.map(item => ({
-        description: item.description,
-        price: item.price,
-        quoteId: newQuote.quoteId,
-      }));
-      await LineItem.bulkCreate(lineItems);
-    }
+    const lineItems = items.map(item => ({
+      description: item.description,
+      price: item.price,
+      quoteId: newQuote.quoteId,
+    }));
+    await LineItem.bulkCreate(lineItems);
 
-    res.status(201).json(newQuote);
+    // Fetch the newly created quote along with its items
+    const createdQuote = await Quote.findOne({
+      where: { quoteId: newQuote.quoteId },
+      include: [{
+        model: LineItem,
+        as: 'items',
+      }],
+    });
+
+    res.status(201).json(createdQuote);
   } catch (error) {
     console.error('Error creating quote:', error);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -55,12 +71,21 @@ router.put('/:quoteId', async (req, res) => {
       include: [{ model: LineItem, as: 'items' }],
     });
 
+    // Ensure Quote Exists
     if (!quote) {
       return res.status(404).json({ success: false, message: 'Quote not found' });
     }
 
+    // Ensure Quote is a draft
     if (quote.status !== 'draft') {
       return res.status(400).json({ success: false, message: 'Only draft quotes can be edited' });
+    }
+
+    // Validate that at least one line item exists after update
+    if (!Array.isArray(items) || items.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'At least one line item is required.' });
     }
 
     // Update quote details
@@ -139,7 +164,10 @@ router.post('/:quoteId/submit', async (req, res) => {
   const { quoteId } = req.params;
 
   try {
-    const quote = await Quote.findByPk(quoteId);
+    const quote = await Quote.findOne({
+      where: { quoteId },
+      include: [{ model: LineItem, as: 'items' }],
+    });
 
     if (!quote) {
       return res.status(404).json({ success: false, message: 'Quote not found' });
@@ -148,6 +176,13 @@ router.post('/:quoteId/submit', async (req, res) => {
     // Ensure the quote is in 'draft' status before finalizing
     if (quote.status !== 'draft') {
       return res.status(400).json({ success: false, message: 'Only draft quotes can be submitted' });
+    }
+
+    // Ensure there is at least one line item
+    if (!Array.isArray(quote.items) || quote.items.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Cannot submit a quote without line items.' });
     }
 
     // Update quote status to 'submitted'

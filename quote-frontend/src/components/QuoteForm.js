@@ -17,12 +17,18 @@ function QuoteForm({ quote, onSave, onCancel }) {
     customerId: quote.customerId || '',
     email: quote.email || '',
     secretNotes: quote.secretNotes || '',
-    items: quote.items || [],
+    items: Array.isArray(quote.items) && quote.items.length > 0 ? quote.items : [{
+      lineItemId: `I${Date.now()}`,
+      description: '',
+      price: 0,
+    }],
   });
 
   const [customerInfo, setCustomerInfo] = useState(null);
   const [customerError, setCustomerError] = useState('');
   const [emailValid, setEmailValid] = useState(null);
+  const [formError, setFormError] = useState('');
+
   /**
    * Will fetch customer info based on customerId
    */
@@ -113,8 +119,13 @@ function QuoteForm({ quote, onSave, onCancel }) {
    * @param {*} index index of item to remove
    */
   const removeItem = (index) => {
+    if (formData.items.length === 1) {
+      setFormError('At least one line item must be present.');
+      return;
+    }
     const items = formData.items.filter((_, i) => i !== index);
     setFormData({ ...formData, items });
+    setFormError('');
   };
 
   /**
@@ -124,11 +135,19 @@ function QuoteForm({ quote, onSave, onCancel }) {
    * @param {*} e input from form
    * @returns if email is invalid
    */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setFormError('');
 
     if (!validateEmail(formData.email)) {
       setEmailValid(false);
+      setFormError('Please enter a valid email address.');
+      return;
+    }
+
+    if (formData.items.length === 0) {
+      setFormError('At least one line item is required.');
       return;
     }
   
@@ -145,7 +164,12 @@ function QuoteForm({ quote, onSave, onCancel }) {
       })),
     };
   
-    onSave(dataToSend);
+    try {
+      await onSave(dataToSend);
+      alert('Quote saved successfully!');
+    } catch (error) {
+      alert('Error saving quote.');
+    }
   };
 
   return (
@@ -243,6 +267,7 @@ function QuoteForm({ quote, onSave, onCancel }) {
           Add Item
         </button>
         <br />
+        {formError && <p className="error-message">{formError}</p>}
         <div className="flex mt-20">
           <button className="button" type="submit" disabled={!customerInfo}>
             Save Quote
