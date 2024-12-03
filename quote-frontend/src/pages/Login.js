@@ -2,7 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
-
+/**
+ * Login Component
+ * Establishes login functionality and display
+ * @param {*} input setUser 
+ * @returns React display info
+ */
 function Login({ setUser }) {
   const [formData, setFormData] = useState({
     user_id: '',
@@ -13,7 +18,10 @@ function Login({ setUser }) {
   const navigate = useNavigate();
 
   const { user_id, password } = formData;
-
+  /**
+   * Handles when inputs in the form change
+   * @param {*} e 
+   */
   const handleChange = (e) => {
     setFormData({ 
       ...formData, 
@@ -21,14 +29,18 @@ function Login({ setUser }) {
     });
   };
 
+  /**
+   * Handles when the submit button is pressed
+   * Attemps to login a user by checking with the database
+   * INSECURE for development
+   * @param {*} e form information
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Make a POST request to the backend authentication endpoint
       const response = await api.post('/auth/login', { user_id, password });
 
       if (response.data.success) {
-        // Store associate information
         const userData = {
           user_id: response.data.user_id,
           associate_id: response.data.associate_id,

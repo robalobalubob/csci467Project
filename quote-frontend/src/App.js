@@ -13,8 +13,9 @@ function App() {
       <div className='container'>
         <Navbar user={user} setUser={setUser} />
         <Routes>
+          {/* Base Route - Login */}
           <Route path="/" element={<Login setUser={setUser} />} />
-
+          {/* Dashboard Route - Private */}
           <Route 
             path="/dashboard" 
             element={

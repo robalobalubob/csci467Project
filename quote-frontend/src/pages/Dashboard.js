@@ -3,10 +3,20 @@ import QuoteList from '../components/QuoteList';
 import QuoteForm from '../components/QuoteForm.js';
 import api from '../services/api';
 
+/**
+ * Dashboard Component
+ * Establishes display info
+ * @param {*} input user 
+ * @returns React Display info
+ */
 function Dashboard({ user }) {
   const [quotes, setQuotes] = useState([]);
   const [editingQuote, setEditingQuote] = useState(null);
 
+  /**
+   * Handles when the create quote button is pressed
+   * Sets the setEditingQuote function for a new quote
+   */
   const handleCreateQuote = () => {
     setEditingQuote({
       quoteId: null, // New quote
@@ -19,10 +29,20 @@ function Dashboard({ user }) {
     });
   };
 
+  /**
+   * Handles when the edit quote button is pressed
+   * Sets the setEditingQuote function for a already existing quote
+   * @param {*} quote the quote to be edited
+   */
   const handleEditQuote = (quote) => {
     setEditingQuote(quote);
   };
 
+  /**
+   * Called when the save quote button is pressed
+   * Passed to QuoteForm
+   * @param {*} quote 
+   */
   const handleSaveQuote = async (quote) => {
     try {
       if (quote.quoteId) {
@@ -46,10 +66,19 @@ function Dashboard({ user }) {
     }
   };
 
+  /**
+   * Handles the the cancel button is pressed while editing a quote
+   * Passed to QuoteForm
+   */
   const handleCancelEdit = () => {
     setEditingQuote(null);
   };
 
+  /**
+   * Handles when the quote is updated
+   * Passed to QuoteList
+   * Gets quote data from backend
+   */
   const handleQuoteUpdated = async () => {
     try {
       const response = await api.get('/quotes', {
@@ -62,7 +91,6 @@ function Dashboard({ user }) {
   };
 
   useEffect(() => {
-    // Define fetchQuotes inside useEffect
     const fetchQuotes = async () => {
       try {
         const response = await api.get('/quotes', {

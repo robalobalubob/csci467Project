@@ -1,6 +1,12 @@
 import api from '../services/api';
 import '../App.css';
 
+/**
+ * QuoteList Component
+ * Establishes QuoteList for display
+ * @param {*} input quotes, onEdit, onQuoteUpdated 
+ * @returns react display info
+ */
 function QuoteList({ quotes, onEdit, onQuoteUpdated }) {
   return (
     <div>
@@ -31,8 +37,16 @@ function QuoteList({ quotes, onEdit, onQuoteUpdated }) {
   );
 }
 
+/**
+ * QuoteItem component
+ * @param {*} input quote, onEdit, onQuoteUpdated 
+ * @returns React display info
+ */
 function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
-
+  /**
+   * Handles when the submit quote button is pressed
+   * Updates quote status to submitted
+   */
   const handleFinalizeQuote = async () => {
     try {
       const response = await api.post(`/quotes/${quote.quoteId}/submit`);
@@ -48,6 +62,10 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
     }
   }
 
+  /**
+   * Handles when the delete quote button is pressed
+   * Attempts to delete a quote from the database
+   */
   const handleDeleteQuote = async () => {
     if (window.confirm('Are you sure you want to delete this quote?')) {
       try {

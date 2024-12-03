@@ -4,7 +4,9 @@ import '../App.css';
 
 function Navbar({ user, setUser }) {
   const navigate = useNavigate();
-
+  /**
+   * Handles when a user logs out
+   */
   const handleLogout = () => {
     setUser(null);
     navigate('/');

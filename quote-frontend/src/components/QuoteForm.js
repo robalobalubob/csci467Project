@@ -3,6 +3,12 @@ import { ReactComponent as EmailIcon } from '../email.svg';
 import api from '../services/api';
 import '../App.css';
 
+/**
+ * QuoteForm component
+ * Establishes the QuoteForm for display
+ * @param {*} input quote, onSave, onCancel
+ * @returns 
+ */
 function QuoteForm({ quote, onSave, onCancel }) {
   const [formData, setFormData] = useState({
     ...quote,
@@ -17,7 +23,9 @@ function QuoteForm({ quote, onSave, onCancel }) {
   const [customerInfo, setCustomerInfo] = useState(null);
   const [customerError, setCustomerError] = useState('');
   const [emailValid, setEmailValid] = useState(null);
-
+  /**
+   * Will fetch customer info based on customerId
+   */
   useEffect(() => {
     const fetchCustomerInfo = async () => {
       if (formData.customerId) {
@@ -39,26 +47,41 @@ function QuoteForm({ quote, onSave, onCancel }) {
     fetchCustomerInfo();
   }, [formData.customerId]);
 
+  /**
+   * Basic email validation
+   * @param {*} email from input html
+   * @returns true or false depending on the regex test
+   */
   const validateEmail = (email) => {
+    // Basic email Regex
     const regex = /^\S+@\S+\.\S+$/;
     return regex.test(email);
   };
 
+  /**
+   * Called when a change occurs when input changes in the form
+   * @param {*} e input from html
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // If the field is email, validate it
     if (name === 'email') {
       const isValid = validateEmail(value);
       setEmailValid(isValid);
     }
-
+    
     setFormData({
       ...formData,
       [name]: value,
     });
   };
 
+  /**
+   * Handles when an item changes in the form
+   * Updates information in formData
+   * @param {*} index index of edited item
+   * @param {*} e input from html
+   */
   const handleItemChange = (index, e) => {
     const items = [...formData.items];
     const value = e.target.name === 'price' ? parseFloat(e.target.value) || 0 : e.target.value;
@@ -66,6 +89,10 @@ function QuoteForm({ quote, onSave, onCancel }) {
     setFormData({ ...formData, items });
   };
 
+  /**
+   * Handles when the Add Item button is pressed
+   * Adds a new item to formData
+   */
   const addItem = () => {
     setFormData({
       ...formData,
@@ -80,11 +107,23 @@ function QuoteForm({ quote, onSave, onCancel }) {
     });
   };
 
+  /**
+   * Handles when the delete item button is pressed
+   * Removes an item from formData
+   * @param {*} index index of item to remove
+   */
   const removeItem = (index) => {
     const items = formData.items.filter((_, i) => i !== index);
     setFormData({ ...formData, items });
   };
 
+  /**
+   * Handles when the submit button is pressed
+   * Checks validity of email
+   * Properly forms the formData to send
+   * @param {*} e input from form
+   * @returns if email is invalid
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -148,8 +187,6 @@ function QuoteForm({ quote, onSave, onCancel }) {
               onChange={handleChange}
               required
               className={emailValid === false ? 'error' : emailValid === true ? 'success' : ''}
-              aria-invalid={emailValid === false}
-              aria-describedby="email-feedback"
             />
           </div>
           {emailValid === false && (
