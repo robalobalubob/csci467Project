@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import '../App.css';
-
+/**
+ * PurchaseOrderProcessing Component
+ * @returns React Display Information
+ */
 function PurchaseOrderProcessing() {
   const [sanctionedQuotes, setSanctionedQuotes] = useState([]);
   const [selectedQuote, setSelectedQuote] = useState(null);
@@ -9,6 +12,9 @@ function PurchaseOrderProcessing() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  /**
+   * Retrieves all sanctioned quotes
+   */
   const fetchSanctionedQuotes = async () => {
     try {
       const response = await api.get('/quotes', {
@@ -20,10 +26,18 @@ function PurchaseOrderProcessing() {
     }
   };
 
+  /**
+   * Refreshes list of sancioned quotes
+   */
   useEffect(() => {
     fetchSanctionedQuotes();
   }, []);
 
+  /**
+   * Handles when the process order button is pressed
+   * Ensures quote is prepared to send to external system
+   * @returns if there is an issue with quote set up
+   */
   const handleProcessOrder = async () => {
     if (finalDiscount < 0 || finalDiscount > selectedQuote.totalAmount) {
       setErrorMessage('Invalid final discount amount.');

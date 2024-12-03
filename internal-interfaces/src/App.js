@@ -23,8 +23,11 @@ function App() {
         </NavLink>
       </nav>
       <Routes>
+        {/** Quote Management Route */}
         <Route path="/quotes" element={<QuoteManagement />} />
+        {/** Purchase Order Route */}
         <Route path="/purchase-orders" element={<PurchaseOrderProcessing />} />
+        {/** Default Route - Quote Management */}
         <Route path="/" element={<QuoteManagement />} />
       </Routes>
     </div>

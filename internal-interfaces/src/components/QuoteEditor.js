@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import '../App.css';
-
+/**
+ * QuoteEditor Component
+ * @param {*} inputs quote, onSave, onCancel 
+ * @returns React Display information
+ */
 function QuoteEditor({ quote, onSave, onCancel }) {
   const [lineItems, setLineItems] = useState([]);
   const [discount, setDiscount] = useState(quote.discount || 0);
@@ -9,25 +13,45 @@ function QuoteEditor({ quote, onSave, onCancel }) {
   const [secretNotes, setSecretNotes] = useState(quote.secretNotes || '');
   const [quoteStatus] = useState(quote.status || 'unresolved');
 
+  /**
+   * Ensures Line Items are up to date
+   */
   useEffect(() => {
     setLineItems(quote.items || []);
   }, [quote]);
 
+  /**
+   * Handles when the add line item button is pressed
+   */
   const handleAddLineItem = () => {
     setLineItems([...lineItems, { description: '', price: 0 }]);
   };
 
+  /**
+   * Handles when a line item is changed
+   * @param {*} index index of line item changed
+   * @param {*} field description
+   * @param {*} value price
+   */
   const handleLineItemChange = (index, field, value) => {
     const updatedItems = [...lineItems];
     updatedItems[index][field] = value;
     setLineItems(updatedItems);
   };
 
+  /**
+   * Handles when the delete item button is pressed
+   * @param {*} index index of item to remove
+   */
   const handleRemoveLineItem = (index) => {
     const updatedItems = lineItems.filter((_, i) => i !== index);
     setLineItems(updatedItems);
   };
 
+  /**
+   * Handles when the save quote button is pressed
+   * Will update status to 'unresolved'
+   */
   const handleSave = async () => {
     try {
       const updatedQuote = {
