@@ -334,7 +334,7 @@ router.post('/:quoteId/process-order', async (req, res) => {
             return { quote, poResponse };
         });
   
-      // After the transaction has been committed, send purchase order confirmation email
+        // After the transaction has been committed, send purchase order confirmation email
         try {
             await sendPurchaseOrderEmailToCustomer(purchaseOrderResult.quote, purchaseOrderResult.poResponse);
         } catch (emailError) {

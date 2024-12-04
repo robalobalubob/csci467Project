@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'quotes', // References the 'quotes' table
+          model: 'quotes',
           key: 'quote_id',
         },
         onUpdate: 'CASCADE',

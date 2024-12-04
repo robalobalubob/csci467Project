@@ -50,7 +50,7 @@ fs.readdirSync(__dirname)
       file.indexOf('.') !== 0 &&
       file !== basename &&
       file.slice(-3) === '.js' &&
-      file !== 'legacyCustomer.js' // Exclude the legacy customer model
+      file !== 'legacyCustomer.js'
     );
   })
   .forEach((file) => {

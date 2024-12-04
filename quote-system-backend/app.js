@@ -18,16 +18,18 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Establish routes outside /api
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/internal/quotes', internalQuotesRouter); // Internal quotes routes
+app.use('/api/internal/quotes', internalQuotesRouter);
 
 // Root Route
 app.get('/', (req, res) => {
   res.send('Welcome to the Quote System Backend API!');
 });
 
-app.use('/api', routes); // Main API routes for sales associates
+// Base Route
+app.use('/api', routes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

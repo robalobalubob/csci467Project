@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User } = require('../models');  // Your database connection module
+const { User } = require('../models');
 
 router.post('/login', async (req, res) => {
   const { user_id, password } = req.body;

@@ -3,10 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import '../App.css';
 
+/**
+ * AssociateList Component
+ * Shows a table with all associates
+ * @returns React Display info
+ */
 function AssociateList() {
     const [associates, setAssociates] = useState([]);
     const navigate = useNavigate();
 
+    /**
+     * Fetches all associates from the backend
+     */
     const fetchAssociates = async () => {
         try {
             const response = await api.get('admin/associates');
@@ -17,10 +25,17 @@ function AssociateList() {
         }
     };
 
+    /**
+     * Ensures associates are up to date
+     */
     useEffect(() => {
         fetchAssociates();
     }, []);
 
+    /**
+     * Handles when an associate is selected to be deleted
+     * @param {*} associateId associate to be deleted
+     */
     const handleDelete = async (associateId) => {
         if (window.confirm('Are you sure you want to delete this associate?')) {
             try {
@@ -34,6 +49,11 @@ function AssociateList() {
         }
     };
 
+    /**
+     * Handles what happens when edit is selected
+     * Navigates to AssociateForm
+     * @param {*} associate associate to be edited
+     */
     const handleEdit = (associate) => {
         navigate(`/associates/edit/${associate.associateId}`);
     };

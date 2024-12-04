@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import '../App.css';
 
+/**
+ * QuoteSearchForm Component
+ * Allows for filtering the quote list
+ * @param {*} param0 onSearch
+ * @returns React Disply info
+ */
 function QuoteSearchForm({ onSearch }) {
     const [filters, setFilters] = useState({
         status: '',
@@ -10,10 +16,19 @@ function QuoteSearchForm({ onSearch }) {
         customerId: '',
     });
 
+    /**
+     * Handles what to do when the form updates
+     * @param {*} e filters element
+     */
     const handleChange = (e) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });
     };
 
+    /**
+     * Handles when the submit button is pressed
+     * Calls onSearch (handleSearch)
+     * @param {*} e filters
+     */
     const handleSubmit = (e) => {
         e.preventDefault();
         onSearch(filters);

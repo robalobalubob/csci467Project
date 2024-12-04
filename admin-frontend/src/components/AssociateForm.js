@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import '../App.css';
-
+/**
+ * AssociateForm Component
+ * Where Associates are edited and created
+ * @returns React Display info
+ */
 function AssociateForm() {
     const { associateId } = useParams();
     const navigate = useNavigate();
@@ -17,6 +21,9 @@ function AssociateForm() {
 
     const isEditMode = Boolean(associateId);
 
+    /**
+     * Ensures associate information is up to date
+     */
     useEffect(() => {
         if (isEditMode) {
             // Fetch associate details for editing
@@ -43,6 +50,10 @@ function AssociateForm() {
         }
     }, [associateId, isEditMode, navigate]);
 
+    /**
+     * Ensures that necessary fields are filled out
+     * @returns Any errors in the form
+     */
     const validate = () => {
         const errors = {};
         if (!formData.name.trim()) errors.name = 'Name is required';
@@ -51,11 +62,21 @@ function AssociateForm() {
         return errors;
     };
 
+    /**
+     * Handles when data in the form changes
+     * @param {*} e formData element 
+     */
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
         setErrors({ ...errors, [e.target.name]: '' });
     };
 
+    /**
+     * Handles when the submit button is pressed
+     * Sends data to the backend
+     * @param {*} e formData element
+     * @returns If there is an error cancel submission
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
         const validationErrors = validate();
@@ -85,6 +106,10 @@ function AssociateForm() {
         }
     };
 
+    /**
+     * Handles when cancel is pressed.
+     * Navigates back to AssociateList
+    */
     const handleCancel = () => {
         navigate('/associates');
     };

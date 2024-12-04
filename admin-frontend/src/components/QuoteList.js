@@ -1,6 +1,12 @@
 import React from 'react';
 import '../App.css';
 
+/**
+ * QuoteList Component
+ * Displays a table of quotes.
+ * @param {*} input quotes 
+ * @returns React Display information
+ */
 function QuoteList({ quotes }) {
     return (
         <div className="form-group">

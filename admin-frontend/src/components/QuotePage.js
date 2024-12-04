@@ -4,10 +4,19 @@ import QuoteList from './QuoteList';
 import api from '../services/api';
 import '../App.css';
 
+/**
+ * QuotePage Component
+ * Page that holds QuoteSearchForm and QuoteList
+ * @returns React Display info
+ */
 function QuotePage() {
   const [quotes, setQuotes] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
 
+  /**
+   * Handles what to do when the quote list is filtered by quote search
+   * @param {*} filters what to filter the search by
+   */
   const handleSearch = async (filters) => {
     try {
       const response = await api.get('admin/quotes', { params: filters });
@@ -18,10 +27,16 @@ function QuotePage() {
     }
   };
 
+  /**
+   * Toggles whether or the filters should be visible
+   */
   const toggleFilters = () => {
     setShowFilters((prev) => !prev);
   };
 
+  /**
+   * Ensures default quotes are retrieved when navigating to the page
+   */
   useEffect(() => {
     const fetchDefaultQuotes = async () => {
       const defaultFilters = {};

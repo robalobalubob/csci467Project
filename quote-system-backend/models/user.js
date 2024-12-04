@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: 'associate_id', // Maps to database column 'associate_id'
+        field: 'associate_id', 
       },
       name: {
         type: DataTypes.STRING,
@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true, // Enforce uniqueness for login IDs
+        unique: true,
         field: 'user_id',
       },
       password: {
@@ -32,9 +32,9 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
     }, {
-      tableName: 'users', // Specify the table name if you want to customize it
-      timestamps: true, // Adds createdAt and updatedAt fields
-      underscored: true, // Use snake_case column names in the database
+      tableName: 'users', 
+      timestamps: true, 
+      underscored: true, 
     });
   
     // Associations

@@ -21,7 +21,6 @@ module.exports = {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      // Add more users as needed
     ], {});
   },
 
