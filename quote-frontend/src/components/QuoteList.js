@@ -89,8 +89,6 @@ function QuoteItem({ quote, onEdit, onQuoteUpdated }) {
     }
   };
 
-  const items = Array.isArray(quote.items) ? quote.items : [];
-
   return (
     <tr>
       <td>{quote.quoteId}</td>

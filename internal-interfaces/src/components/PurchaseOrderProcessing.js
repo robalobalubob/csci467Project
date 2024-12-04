@@ -11,13 +11,15 @@ function PurchaseOrderProcessing() {
   const [finalDiscount, setFinalDiscount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [customerInfo, setCustomerInfo] = useState(null);
+  const [customerError, setCustomerError] = useState('');
 
   /**
    * Retrieves all sanctioned quotes
    */
   const fetchSanctionedQuotes = async () => {
     try {
-      const response = await api.get('/quotes', {
+      const response = await api.get('internal/quotes', {
         params: { status: 'sanctioned' },
       });
       setSanctionedQuotes(response.data);
@@ -34,6 +36,30 @@ function PurchaseOrderProcessing() {
   }, []);
 
   /**
+   * Fetch customer info based on selected quote's customerId
+   */
+  useEffect(() => {
+    const fetchCustomerInfo = async () => {
+      if (selectedQuote && selectedQuote.customerId) {
+        try {
+          const response = await api.get(`/customers/${selectedQuote.customerId}`);
+          setCustomerInfo(response.data);
+          setCustomerError('');
+        } catch (error) {
+          console.error('Error fetching customer info:', error);
+          setCustomerInfo(null);
+          setCustomerError('Customer not found.');
+        }
+      } else {
+        setCustomerInfo(null);
+        setCustomerError('');
+      }
+    };
+
+    fetchCustomerInfo();
+  }, [selectedQuote]);
+
+  /**
    * Handles when the process order button is pressed
    * Ensures quote is prepared to send to external system
    * @returns if there is an issue with quote set up
@@ -47,7 +73,7 @@ function PurchaseOrderProcessing() {
     setIsProcessing(true);
     setErrorMessage('');
     try {
-      const response = await api.post(`/quotes/${selectedQuote.quoteId}/process-order`, {
+      const response = await api.post(`internal/quotes/${selectedQuote.quoteId}/process-order`, {
         finalDiscount,
       });
 
@@ -75,6 +101,32 @@ function PurchaseOrderProcessing() {
         <div className="form-group">
           <h3>Quote ID: {selectedQuote.quoteId}</h3>
           <p>Customer ID: {selectedQuote.customerId}</p>
+          {customerInfo && (
+            <div className="form-group">
+              <h4>Customer Information</h4>
+              <table className="customer-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>City</th>
+                    <th>Street</th>
+                    <th>Contact</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{customerInfo.name}</td>
+                    <td>{customerInfo.city}</td>
+                    <td>{customerInfo.street}</td>
+                    <td>{customerInfo.contact}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+          {customerError && (
+            <p className="error-message">{customerError}</p>
+          )}
           <p>Total Amount: ${parseFloat(selectedQuote.totalAmount).toFixed(2)}</p>
           <div className="form-group">
             <label htmlFor="finalDiscount">Final Discount:</label>
@@ -87,6 +139,7 @@ function PurchaseOrderProcessing() {
               max={selectedQuote.totalAmount}
             />
           </div>
+          <p>Final Amount: ${parseFloat(selectedQuote.totalAmount).toFixed(2) - finalDiscount}</p>
           {errorMessage && <p className="error-message">{errorMessage}</p>}
           <div className="flex">
             <button className="button" onClick={handleProcessOrder} disabled={isProcessing}>

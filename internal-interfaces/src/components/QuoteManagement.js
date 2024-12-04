@@ -17,7 +17,7 @@ function QuoteManagement() {
    */
   const fetchQuotes = async () => {
     try {
-      const response = await api.get('/quotes', {
+      const response = await api.get('internal/quotes', {
         params: {
           status: ['submitted', 'unresolved'],
         },
@@ -51,7 +51,7 @@ function QuoteManagement() {
    */
   const handleSanction = async (quote) => {
     try {
-      await api.post(`/quotes/${quote.quoteId}/sanction`);
+      await api.post(`internal/quotes/${quote.quoteId}/sanction`);
       fetchQuotes();
     } catch (error) {
       console.error('Error sanctioning quote:', error);

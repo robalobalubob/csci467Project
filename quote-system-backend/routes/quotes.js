@@ -25,6 +25,14 @@ router.post('/', async (req, res) => {
         .json({ success: false, message: 'At least one line item is required.' });
     }
 
+    for (const item of items) {
+      if (!item.description || item.price < 0) {
+          return res
+          .status(400)
+          .json({ success: false, message: 'Each line item must have a valid description and a non-negative price.' });
+      }
+  }
+
     // Calculate total amount
     const lineItemsTotal = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
 

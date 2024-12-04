@@ -97,6 +97,11 @@ nav button:active, nav a.button:active {
   transform: translateY(0px);
 }
 
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Active Navigation Button */
 .button.active,
 .button-secondary.active {
@@ -137,6 +142,34 @@ nav button:active, nav a.button:active {
 
 .table tr:hover {
   background-color: #f1f1f1;
+}
+
+/* Customer Table */
+.customer-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  font-size: 0.9em;
+}
+
+.customer-table th,
+.customer-table td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.customer-table th {
+  background-color: #f9f9f9;
+  width: 25%;
+}
+
+.customer-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.customer-table tr:hover {
+  background-color: #eaeaea;
 }
 
 /* Nested Table Styles */

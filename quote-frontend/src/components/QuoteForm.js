@@ -150,6 +150,13 @@ function QuoteForm({ quote, onSave, onCancel }) {
       setFormError('At least one line item is required.');
       return;
     }
+    
+    for (const item of formData.items) {
+      if (!item.description || item.price < 0) {
+        setFormError('Line item prices cannot be negative.');
+        return;
+    }
+    }
   
     const dataToSend = {
       quoteId: formData.quoteId,
@@ -190,10 +197,24 @@ function QuoteForm({ quote, onSave, onCancel }) {
         {customerInfo && (
           <div className="form-group">
             <h4>Customer Information</h4>
-            <p><strong>Name:</strong> {customerInfo.name}</p>
-            <p><strong>City:</strong> {customerInfo.city}</p>
-            <p><strong>Street:</strong> {customerInfo.street}</p>
-            <p><strong>Contact:</strong> {customerInfo.contact}</p>
+            <table className="customer-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>City</th>
+                  <th>Street</th>
+                  <th>Contact</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{customerInfo.name}</td>
+                  <td>{customerInfo.city}</td>
+                  <td>{customerInfo.street}</td>
+                  <td>{customerInfo.contact}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
         {customerError && (

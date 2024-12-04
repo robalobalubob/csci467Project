@@ -42,21 +42,40 @@ router.put('/:quoteId', async (req, res) => {
         items,
         discount,
         discountType,
-        status, // Allow updating status to 'unresolved' or 'sanctioned'
+        status,
     } = req.body;
+
+    const transaction = await sequelize.transaction();
   
     try {
         const quote = await Quote.findByPk(quoteId, {
-        include: [{ model: LineItem, as: 'items' }],
+            include: [{ model: LineItem, as: 'items' }],
+            transaction,
         });
 
         if (!quote) {
-        return res.status(404).json({ success: false, message: 'Quote not found' });
+            await transaction.rollback();
+            return res.status(404).json({ success: false, message: 'Quote not found' });
         }
 
         // Allow editing only if the quote is in 'submitted' or 'unresolved' status
         if (!['submitted', 'unresolved'].includes(quote.status)) {
-        return res.status(400).json({ success: false, message: 'Quote cannot be edited in its current status' });
+            await transaction.rollback();
+            return res.status(400).json({ success: false, message: 'Quote cannot be edited in its current status' });
+        }
+
+        // Validate that at least one line item is provided
+        if (!Array.isArray(items) || items.length === 0) {
+            await transaction.rollback();
+            return res.status(400).json({ success: false, message: 'At least one line item is required.' });
+        }
+        
+        // Validate individual line items for required fields
+        for (const item of items) {
+            if (!item.description || item.price < 0) {
+                await transaction.rollback();
+                return res.status(400).json({ success: false, message: 'Each line item must have a valid description and a non-negative price.' });
+            }
         }
 
         // Update quote details
@@ -68,7 +87,7 @@ router.put('/:quoteId', async (req, res) => {
             discount,
             discountType,
             status: 'unresolved',
-          });
+          }, { transaction });
   
         // Update line items
         // Existing line items from the database
@@ -86,26 +105,26 @@ router.put('/:quoteId', async (req, res) => {
         // Process incoming items
         for (const item of items) {
             if (item.lineItemId && existingItemsMap[item.lineItemId]) {
-            // Update existing item
-            await existingItemsMap[item.lineItemId].update({
-                description: item.description,
-                price: item.price,
-            });
-            processedItemIds.add(item.lineItemId);
+                // Update existing item
+                await existingItemsMap[item.lineItemId].update({
+                    description: item.description,
+                    price: item.price,
+                }, { transaction });
+                processedItemIds.add(item.lineItemId);
             } else {
-            // Create new item
-            await LineItem.create({
-                description: item.description,
-                price: item.price,
-                quoteId: quoteId,
-            });
+                // Create new item
+                await LineItem.create({
+                    description: item.description,
+                    price: item.price,
+                    quoteId: quoteId,
+                }, { transaction });
             }
         }
 
         // Delete items that are not in the incoming items
         for (const item of existingItems) {
             if (!processedItemIds.has(item.lineItemId)) {
-                await item.destroy();
+                await item.destroy({ transaction });
             }
         }
   
@@ -119,14 +138,22 @@ router.put('/:quoteId', async (req, res) => {
             totalAmount -= (totalAmount * parseFloat(discount)) / 100;
         }
 
-        quote.totalAmount = totalAmount;
+        totalAmount = totalAmount < 0 ? 0 : totalAmount;
 
-        await quote.save();
+        await quote.update({ totalAmount }, { transaction });
 
-        res.json({ success: true, message: 'Quote updated', quote });
+        await transaction.commit();
+
+        const updatedQuote = await Quote.findByPk(quoteId, {
+            include: [{ model: LineItem, as: 'items' }],
+            transaction: null, // No need for the transaction here
+        });
+
+        res.json({ success: true, message: 'Quote updated successfully.', quote: updatedQuote });
     } catch (error) {
+        await transaction.rollback();
         console.error('Error updating quote:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error while updating the quote.' });
     }
 });
 
@@ -144,7 +171,7 @@ router.get('/submitted', async (req, res) => {
     }
     });
 
-    router.post('/:quoteId/sanction', async (req, res) => {
+router.post('/:quoteId/sanction', async (req, res) => {
     const { quoteId } = req.params;
 
     try {

@@ -12,6 +12,33 @@ function QuoteEditor({ quote, onSave, onCancel }) {
   const [discountType, setDiscountType] = useState(quote.discountType || 'amount');
   const [secretNotes, setSecretNotes] = useState(quote.secretNotes || '');
   const [quoteStatus] = useState(quote.status || 'unresolved');
+  const [formError, setFormError] = useState('');
+  const [customerInfo, setCustomerInfo] = useState(null);
+  const [customerError, setCustomerError] = useState('');
+
+  /**
+   * Fetch customer info based on customerId
+   */
+  useEffect(() => {
+    const fetchCustomerInfo = async () => {
+      if (quote.customerId) {
+        try {
+          const response = await api.get(`/customers/${quote.customerId}`);
+          setCustomerInfo(response.data);
+          setCustomerError('');
+        } catch (error) {
+          console.error('Error fetching customer info:', error);
+          setCustomerInfo(null);
+          setCustomerError('Customer not found.');
+        }
+      } else {
+        setCustomerInfo(null);
+        setCustomerError('');
+      }
+    };
+
+    fetchCustomerInfo();
+  }, [quote.customerId]);
 
   /**
    * Ensures Line Items are up to date
@@ -25,6 +52,7 @@ function QuoteEditor({ quote, onSave, onCancel }) {
    */
   const handleAddLineItem = () => {
     setLineItems([...lineItems, { description: '', price: 0 }]);
+    setFormError('');
   };
 
   /**
@@ -37,6 +65,7 @@ function QuoteEditor({ quote, onSave, onCancel }) {
     const updatedItems = [...lineItems];
     updatedItems[index][field] = value;
     setLineItems(updatedItems);
+    setFormError('');
   };
 
   /**
@@ -44,8 +73,13 @@ function QuoteEditor({ quote, onSave, onCancel }) {
    * @param {*} index index of item to remove
    */
   const handleRemoveLineItem = (index) => {
+    if (lineItems.length === 1) {
+      setFormError('At least one line item is required.');
+      return;
+    }
     const updatedItems = lineItems.filter((_, i) => i !== index);
     setLineItems(updatedItems);
+    setFormError('');
   };
 
   /**
@@ -54,6 +88,24 @@ function QuoteEditor({ quote, onSave, onCancel }) {
    */
   const handleSave = async () => {
     try {
+
+      setFormError('');
+
+      if (lineItems.length === 0) {
+        setFormError('At least one line item is required.');
+        return;
+      } else if (discount < 0) {
+        setFormError('Discount must be positive.');
+        return;
+      }
+
+      for (const item of lineItems) {
+        if (!item.description || item.price < 0) {
+          setFormError('Line item prices cannot be negative.');
+          return;
+        }
+      }
+
       const updatedQuote = {
         ...quote,
         items: lineItems,
@@ -62,7 +114,7 @@ function QuoteEditor({ quote, onSave, onCancel }) {
         secretNotes,
         status: quoteStatus,
       };
-      await api.put(`/quotes/${quote.quoteId}`, updatedQuote);
+      await api.put(`internal/quotes/${quote.quoteId}`, updatedQuote);
       onSave();
     } catch (error) {
       console.error('Error saving quote:', error);
@@ -73,6 +125,34 @@ function QuoteEditor({ quote, onSave, onCancel }) {
   return (
     <div className="container">
       <h3>Edit Quote ID: {quote.quoteId}</h3>
+
+      {customerInfo && (
+        <div className="form-group">
+          <h4>Customer Information</h4>
+          <table className="customer-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>City</th>
+                <th>Street</th>
+                <th>Contact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{customerInfo.name}</td>
+                <td>{customerInfo.city}</td>
+                <td>{customerInfo.street}</td>
+                <td>{customerInfo.contact}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+      {customerError && (
+        <p className="error-message">{customerError}</p>
+      )}
+      
       <h4>Line Items</h4>
       {lineItems.map((item, index) => (
         <div key={index} className="form-group">
@@ -99,7 +179,11 @@ function QuoteEditor({ quote, onSave, onCancel }) {
             required
           />
           <div className="flex">
-            <button className="button button-secondary" type="button" onClick={() => handleRemoveLineItem(index)}>
+            <button 
+            className="button button-secondary" 
+            type="button" 
+            onClick={() => handleRemoveLineItem(index)} 
+            disabled={lineItems.length === 1}>
               Remove Item
             </button>
           </div>
@@ -110,7 +194,7 @@ function QuoteEditor({ quote, onSave, onCancel }) {
           Add Line Item
         </button>
       </div>
-
+      
       <h4>Discount</h4>
       <div className="form-group">
         <label htmlFor="discountType">Discount Type:</label>
@@ -146,7 +230,7 @@ function QuoteEditor({ quote, onSave, onCancel }) {
           rows="4"
         ></textarea>
       </div>
-
+      {formError && <p className="error-message">{formError}</p>}
       <div className="flex mt-20">
         <button className="button" onClick={handleSave}>Save Quote</button>
         <button className="button button-secondary" onClick={onCancel}>Cancel</button>
