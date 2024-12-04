@@ -14,7 +14,8 @@ Follow these steps to set up and run the **Quote System Backend** on your local 
 
 Ensure you have the following installed:
 
-- **Node.js** 
+- **Node.js**
+   - Version 20.18.1
 - **npm** 
    - Should be installed with node.js
 - **MySQL** 
