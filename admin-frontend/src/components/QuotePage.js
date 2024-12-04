@@ -10,7 +10,7 @@ function QuotePage() {
 
   const handleSearch = async (filters) => {
     try {
-      const response = await api.get('/quotes', { params: filters });
+      const response = await api.get('admin/quotes', { params: filters });
       setQuotes(response.data);
     } catch (error) {
       console.error('Error searching quotes:', error);

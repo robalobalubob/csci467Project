@@ -9,7 +9,7 @@ function AssociateList() {
 
     const fetchAssociates = async () => {
         try {
-            const response = await api.get('/associates');
+            const response = await api.get('admin/associates');
             setAssociates(response.data);
         } catch (error) {
             console.error('Error fetching associates:', error);
@@ -24,7 +24,7 @@ function AssociateList() {
     const handleDelete = async (associateId) => {
         if (window.confirm('Are you sure you want to delete this associate?')) {
             try {
-                await api.delete(`/associates/${associateId}`);
+                await api.delete(`admin/associates/${associateId}`);
                 fetchAssociates();
                 alert('Associate deleted successfully.');
             } catch (error) {

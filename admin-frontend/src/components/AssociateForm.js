@@ -22,7 +22,7 @@ function AssociateForm() {
             // Fetch associate details for editing
             const fetchAssociate = async () => {
                 try {
-                    const response = await api.get(`/associates/${associateId}`);
+                    const response = await api.get(`admin/associates/${associateId}`);
                     setFormData({
                         name: response.data.name || '',
                         userId: response.data.userId || '',
@@ -71,11 +71,11 @@ function AssociateForm() {
                 if (!formData.password.trim()) {
                     delete dataToSend.password;
                 }
-                await api.put(`/associates/${associateId}`, dataToSend);
+                await api.put(`admin/associates/${associateId}`, dataToSend);
                 alert('Associate updated successfully.');
             } else {
                 // Create new associate
-                await api.post('/associates', dataToSend);
+                await api.post('admin/associates', dataToSend);
                 alert('Associate created successfully.');
             }
             navigate('/associates');
