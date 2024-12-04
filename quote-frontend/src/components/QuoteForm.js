@@ -89,6 +89,12 @@ function QuoteForm({ quote, onSave, onCancel }) {
    * @param {*} e input from html
    */
   const handleItemChange = (index, e) => {
+    if (e.target.name === 'price' && e.target.value > 99999999.99) {
+      setFormError('Price exceeds maximum allowed value (99999999.99).');
+      return;
+    } else {
+      setFormError('');
+    }
     const items = [...formData.items];
     const value = e.target.name === 'price' ? parseFloat(e.target.value) || 0 : e.target.value;
     items[index][e.target.name] = value;
@@ -278,6 +284,8 @@ function QuoteForm({ quote, onSave, onCancel }) {
               value={item.price}
               onChange={(e) => handleItemChange(index, e)}
               required
+              min="0"
+              max="99999999.99"
             />
             <button className="button button-secondary" type="button" onClick={() => removeItem(index)}>
               Remove Item

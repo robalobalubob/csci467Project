@@ -62,6 +62,12 @@ function QuoteEditor({ quote, onSave, onCancel }) {
    * @param {*} value price
    */
   const handleLineItemChange = (index, field, value) => {
+    if (field === 'price' && value > 99999999.99) {
+      setFormError('Price exceeds the maximum allowed value.');
+      return;
+    } else {
+      setFormError('');
+    }
     const updatedItems = [...lineItems];
     updatedItems[index][field] = value;
     setLineItems(updatedItems);
@@ -103,6 +109,8 @@ function QuoteEditor({ quote, onSave, onCancel }) {
         if (!item.description || item.price < 0) {
           setFormError('Line item prices cannot be negative.');
           return;
+        } else if (item.price > 99999999.99) {
+          setFormError('Price exceeds the maximum allowed value.');
         }
       }
 
@@ -169,6 +177,7 @@ function QuoteEditor({ quote, onSave, onCancel }) {
           <label htmlFor={`price-${index}`}>Price:</label>
           <input
             type="number"
+            step="0.01"
             id={`price-${index}`}
             name="price"
             placeholder="Price"
@@ -177,6 +186,8 @@ function QuoteEditor({ quote, onSave, onCancel }) {
               handleLineItemChange(index, 'price', parseFloat(e.target.value) || 0)
             }
             required
+            min="0"
+            max="99999999.99"
           />
           <div className="flex">
             <button 

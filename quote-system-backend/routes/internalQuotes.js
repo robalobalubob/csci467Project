@@ -5,6 +5,29 @@ const transporter = require('../emailService');
 const axios = require('axios');
 const EMAIL_USER = process.env.EMAIL_USER;
 
+const validateLineItems = (items) => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return { status: 400, message: 'At least one line item is required.' };
+    }
+  
+    for (const item of items) {
+        if (!item.description) {
+            return { status: 400, message: 'Each line item must have a description.' };
+        }
+  
+        const price = parseFloat(item.price);
+        if (isNaN(price) || price < 0) {
+            return { status: 400, message: 'Each line item must have a non-negative price.' };
+        }
+  
+        if (price > 99999999.99) {
+            return { status: 400, message: 'Line item price exceeds the maximum allowed value.' };
+        }
+    }
+  
+    return null;
+};
+
 router.get('/', async (req, res) => {
     try {
         const { status } = req.query;
@@ -12,23 +35,21 @@ router.get('/', async (req, res) => {
     
         if (status) {
             if (Array.isArray(status)) {
-            whereCondition.status = status;
+                whereCondition.status = status;
             } else {
-            whereCondition.status = [status];
+                whereCondition.status = [status];
             }
         }
     
         const quotes = await Quote.findAll({
-            where: {
-                status: whereCondition.status,
-            },
+            where: whereCondition,
             include: [{ model: LineItem, as: 'items' }],
         });
     
         res.json(quotes);
     } catch (error) {
         console.error('Error retrieving quotes:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error while retrieving quotes.' });
     }
 });
 
@@ -44,66 +65,55 @@ router.put('/:quoteId', async (req, res) => {
         discountType,
         status,
     } = req.body;
-
-    const transaction = await sequelize.transaction();
   
     try {
-        const quote = await Quote.findByPk(quoteId, {
-            include: [{ model: LineItem, as: 'items' }],
-            transaction,
-        });
-
-        if (!quote) {
-            await transaction.rollback();
-            return res.status(404).json({ success: false, message: 'Quote not found' });
-        }
-
-        // Allow editing only if the quote is in 'submitted' or 'unresolved' status
-        if (!['submitted', 'unresolved'].includes(quote.status)) {
-            await transaction.rollback();
-            return res.status(400).json({ success: false, message: 'Quote cannot be edited in its current status' });
-        }
-
-        // Validate that at least one line item is provided
-        if (!Array.isArray(items) || items.length === 0) {
-            await transaction.rollback();
-            return res.status(400).json({ success: false, message: 'At least one line item is required.' });
-        }
-        
-        // Validate individual line items for required fields
-        for (const item of items) {
-            if (!item.description || item.price < 0) {
-                await transaction.rollback();
-                return res.status(400).json({ success: false, message: 'Each line item must have a valid description and a non-negative price.' });
+        const updatedQuote = await sequelize.transaction(async (transaction) => {
+            const quote = await Quote.findByPk(quoteId, {
+                include: [{ model: LineItem, as: 'items' }],
+                transaction,
+            });
+    
+            // Ensure Quote Exists
+            if (!quote) {
+                throw { status: 404, message: 'Quote not found.' };
             }
-        }
-
-        // Update quote details
-        await quote.update({
-            associateId,
-            customerId,
-            email,
-            secretNotes,
-            discount,
-            discountType,
-            status: 'unresolved',
-          }, { transaction });
-  
-        // Update line items
-        // Existing line items from the database
-        const existingItems = quote.items;
-
-        // Maps for tracking line items
-        const existingItemsMap = {};
-        existingItems.forEach(item => {
-            existingItemsMap[item.lineItemId] = item;
-        });
-
-        // Keep track of processed line items
-        const processedItemIds = new Set();
-
-        // Process incoming items
-        for (const item of items) {
+    
+            // Allow editing only if the quote is in 'submitted' or 'unresolved' status
+            if (!['submitted', 'unresolved'].includes(quote.status)) {
+                throw { status: 400, message: 'Quote cannot be edited in its current status.' };
+            }
+    
+            // Validate line items
+            const validationError = validateLineItems(items);
+            if (validationError) {
+                throw validationError;
+            }
+    
+            // Update quote details and set status to 'unresolved'
+            await quote.update({
+                associateId,
+                customerId,
+                email,
+                secretNotes,
+                discount: discount !== undefined ? discount : quote.discount,
+                discountType: discountType || quote.discountType,
+                status: 'unresolved',
+            }, { transaction });
+    
+            // Update line items
+            const existingItems = quote.items;
+    
+            // Create a map for existing items for quick lookup
+            const existingItemsMap = {};
+            existingItems.forEach(item => {
+                existingItemsMap[item.lineItemId] = item;
+            });
+    
+            // Keep track of processed line items
+            const processedItemIds = new Set();
+    
+            // Process incoming items
+            for (const item of items) {
             if (item.lineItemId && existingItemsMap[item.lineItemId]) {
                 // Update existing item
                 await existingItemsMap[item.lineItemId].update({
@@ -119,188 +129,234 @@ router.put('/:quoteId', async (req, res) => {
                     quoteId: quoteId,
                 }, { transaction });
             }
-        }
-
-        // Delete items that are not in the incoming items
-        for (const item of existingItems) {
-            if (!processedItemIds.has(item.lineItemId)) {
-                await item.destroy({ transaction });
             }
-        }
-  
-        // Recalculate total amount
-        const lineItemsTotal = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
-        let totalAmount = lineItemsTotal;
-
-        if (discountType === 'amount') {
-            totalAmount -= parseFloat(discount);
-          } else if (discountType === 'percentage') {
-            totalAmount -= (totalAmount * parseFloat(discount)) / 100;
-        }
-
-        totalAmount = totalAmount < 0 ? 0 : totalAmount;
-
-        await quote.update({ totalAmount }, { transaction });
-
-        await transaction.commit();
-
-        const updatedQuote = await Quote.findByPk(quoteId, {
-            include: [{ model: LineItem, as: 'items' }],
-            transaction: null, // No need for the transaction here
+    
+            // Delete items that are not in the incoming items
+            for (const item of existingItems) {
+                if (!processedItemIds.has(item.lineItemId)) {
+                    await item.destroy({ transaction });
+                }
+            }
+    
+            // Calculate and update total amount
+            let lineItemsTotal = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
+            if (discount !== undefined && discountType) {
+                if (discountType === 'amount') {
+                    lineItemsTotal -= parseFloat(discount);
+                } else if (discountType === 'percentage') {
+                    lineItemsTotal -= (lineItemsTotal * parseFloat(discount)) / 100;
+                }
+                lineItemsTotal = lineItemsTotal < 0 ? 0 : lineItemsTotal;
+            }
+    
+            await quote.update({ totalAmount: lineItemsTotal }, { transaction });
+    
+            // Fetch the updated quote with its items within the transaction
+            const updatedQuoteWithItems = await Quote.findOne({
+                where: { quoteId },
+                include: [{ model: LineItem, as: 'items' }],
+                transaction,
+            });
+    
+            return updatedQuoteWithItems;
         });
-
-        res.json({ success: true, message: 'Quote updated successfully.', quote: updatedQuote });
+  
+      res.json({ success: true, message: 'Quote updated successfully.', quote: updatedQuote });
     } catch (error) {
-        await transaction.rollback();
-        console.error('Error updating quote:', error);
+      console.error('Error updating quote:', error);
+      if (error.status && error.message) {
+        res.status(error.status).json({ success: false, message: error.message });
+      } else {
         res.status(500).json({ success: false, message: 'Server error while updating the quote.' });
+      }
     }
 });
 
 router.get('/submitted', async (req, res) => {
     try {
         const quotes = await Quote.findAll({
-        where: { status: 'submitted' },
-        include: [{ model: LineItem, as: 'items' }],
+            where: { status: 'submitted' },
+            include: [{ model: LineItem, as: 'items' }],
         });
-
+  
         res.json(quotes);
     } catch (error) {
         console.error('Error retrieving submitted quotes:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error while retrieving submitted quotes.' });
     }
-    });
+});
 
 router.post('/:quoteId/sanction', async (req, res) => {
     const { quoteId } = req.params;
 
     try {
-        const quote = await Quote.findByPk(quoteId, {
-        include: [{ model: LineItem, as: 'items' }],
+      
+        const sanctionedQuote = await sequelize.transaction(async (transaction) => {
+            const quote = await Quote.findByPk(quoteId, {
+                include: [{ model: LineItem, as: 'items' }],
+                transaction,
+            });
+  
+            if (!quote) {
+                throw { status: 404, message: 'Quote not found.' };
+            }
+    
+            // Ensure the quote is in 'submitted' or 'unresolved' status
+            if (!['submitted', 'unresolved'].includes(quote.status)) {
+                throw { status: 400, message: 'Only submitted or unresolved quotes can be sanctioned.' };
+            }
+    
+            // Update quote status to 'sanctioned'
+            await quote.update({ status: 'sanctioned' }, { transaction });
+    
+            // Calculate discount
+            const totalBeforeDiscount = quote.items.reduce((sum, item) => sum + parseFloat(item.price), 0);
+            let discountAmount = 0;
+            if (quote.discountType === 'amount') {
+                discountAmount = parseFloat(quote.discount);
+            } else if (quote.discountType === 'percentage') {
+                discountAmount = (totalBeforeDiscount * parseFloat(quote.discount)) / 100;
+            }
+            const totalAfterDiscount = totalBeforeDiscount - discountAmount;
+    
+            return quote;
         });
-
-        if (!quote) {
-        return res.status(404).json({ success: false, message: 'Quote not found' });
+  
+        // After the transaction has been committed, send the email
+        try {
+            await sendQuoteEmailToCustomer(sanctionedQuote);
+        } catch (emailError) {
+            console.error('Error sending sanction email:', emailError);
+            return res.status(500).json({
+                success: false,
+                message: 'Quote sanctioned but failed to send email to customer.',
+            });
         }
-
-        // Ensure the quote is in 'submitted' or 'unresolved' status
-        if (!['submitted', 'unresolved'].includes(quote.status)) {
-        return res.status(400).json({ success: false, message: 'Only submitted or unresolved quotes can be sanctioned' });
-        }
-
-        // Update quote status to 'sanctioned'
-        quote.status = 'sanctioned';
-        await quote.save();
-
-        // Send email to customer excluding secret notes
-        await sendQuoteEmailToCustomer(quote);
-
-        res.json({ success: true, message: 'Quote sanctioned and emailed to customer' });
+  
+        res.json({ success: true, message: 'Quote sanctioned and emailed to customer.' });
     } catch (error) {
         console.error('Error sanctioning quote:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        if (error.status && error.message) {
+            res.status(error.status).json({ success: false, message: error.message });
+        } else {
+            res.status(500).json({ success: false, message: 'Server error while sanctioning the quote.' });
+        }
     }
 });
 
 router.get('/sanctioned', async (req, res) => {
     try {
         const quotes = await Quote.findAll({
-        where: { status: 'sanctioned' },
-        include: [{ model: LineItem, as: 'items' }],
+            where: { status: 'sanctioned' },
+            include: [{ model: LineItem, as: 'items' }],
         });
-
+  
         res.json(quotes);
     } catch (error) {
         console.error('Error retrieving sanctioned quotes:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error while retrieving sanctioned quotes.' });
     }
-    });
+});
 
 router.post('/:quoteId/process-order', async (req, res) => {
     const { quoteId } = req.params;
     const { finalDiscount } = req.body;
-    const t = await sequelize.transaction();
-
+  
     try {
-        const quote = await Quote.findByPk(quoteId, { transaction: t });
-
-        if (!quote) {
-            await t.rollback();
-            return res.status(404).json({ success: false, message: 'Quote not found' });
-        }
-
-        if (quote.status !== 'sanctioned') {
-            await t.rollback();
-            return res.status(400).json({ success: false, message: 'Only sanctioned quotes can be processed' });
-        }
-
-        const finalDiscountNumber = parseFloat(finalDiscount);
-        if (isNaN(finalDiscountNumber) || finalDiscountNumber < 0 || finalDiscountNumber > quote.totalAmount) {
-            await t.rollback();
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid final discount amount',
-            });
-        }
-
-        quote.finalDiscount = finalDiscountNumber;
-        quote.finalAmount = quote.totalAmount - finalDiscountNumber;
-        const curTime = Date.now();
-        const purchaseOrderData = {
-            order: `PO-${quote.quoteId}-${curTime}`,
-            associate: quote.associateId.toString(),
-            custid: quote.customerId.toString(),
-            amount: quote.finalAmount.toFixed(2),
-        };
-
-        const poResponse = await sendPurchaseOrderToExternalSystem(purchaseOrderData);
-        console.log('Purchase Order Response:', poResponse);
-
-        if (poResponse.errors) {
-            await t.rollback();
-            return res.status(400).json({
-              success: false,
-              message: 'Error from external system',
-              errors: poResponse.errors,
-            });
-        }
-
-        const commissionRateString = poResponse.commission;
-        const commissionRate = parseFloat(commissionRateString.replace('%', ''));
-        if (isNaN(commissionRate)) {
-            await t.rollback();
+        const purchaseOrderResult = await sequelize.transaction(async (transaction) => {
+            const quote = await Quote.findByPk(quoteId, { transaction });
+    
+            if (!quote) {
+                throw { status: 404, message: 'Quote not found.' };
+            }
+    
+            if (quote.status !== 'sanctioned') {
+                throw { status: 400, message: 'Only sanctioned quotes can be processed into purchase orders.' };
+            }
+    
+            const finalDiscountNumber = parseFloat(finalDiscount);
+            if (isNaN(finalDiscountNumber) || finalDiscountNumber < 0 || finalDiscountNumber > parseFloat(quote.totalAmount)) {
+                throw { status: 400, message: 'Invalid final discount amount.' };
+            }
+    
+            // Calculate final amount
+            const finalAmount = parseFloat(quote.totalAmount) - finalDiscountNumber;
+    
+            // Prepare purchase order data
+            const purchaseOrderData = {
+                order: `PO-${quote.quoteId}-${Date.now()}`,
+                associate: quote.associateId.toString(),
+                custid: quote.customerId.toString(),
+                amount: finalAmount.toFixed(2),
+            };
+    
+            // Send purchase order to external system
+            const poResponse = await sendPurchaseOrderToExternalSystem(purchaseOrderData);
+    
+            console.log('Purchase Order Response:', poResponse);
+    
+            if (poResponse.errors) {
+                throw { status: 400, message: 'Error from external system.', errors: poResponse.errors };
+            }
+    
+            // Extract commission rate
+            const commissionRateString = poResponse.commission;
+            const commissionRate = parseFloat(commissionRateString.replace('%', ''));
+            if (isNaN(commissionRate)) {
+                throw { status: 500, message: 'Invalid commission rate received from external system.' };
+            }
+    
+            // Update quote with purchase order details
+            await quote.update({
+                status: 'ordered',
+                processingDate: new Date(poResponse.timeStamp).toISOString(),
+                commissionRate,
+                finalDiscount: finalDiscountNumber,
+                finalAmount,
+            }, { transaction });
+    
+            // Update associate's accumulated commission
+            const associate = await User.findByPk(quote.associateId, { transaction });
+            if (!associate) {
+                throw { status: 404, message: 'Associate not found.' };
+            }
+    
+            let accumulatedCommission = parseFloat(associate.accumulatedCommission);
+            if (isNaN(accumulatedCommission)) {
+                accumulatedCommission = 0;
+            }
+    
+            const commissionEarned = (finalAmount * commissionRate) / 100;
+            associate.accumulatedCommission = accumulatedCommission + commissionEarned;
+    
+            await associate.save({ transaction });
+    
+            return { quote, poResponse };
+        });
+  
+      // After the transaction has been committed, send purchase order confirmation email
+        try {
+            await sendPurchaseOrderEmailToCustomer(purchaseOrderResult.quote, purchaseOrderResult.poResponse);
+        } catch (emailError) {
+            console.error('Error sending purchase order email:', emailError);
             return res.status(500).json({
                 success: false,
-                message: 'Invalid commission rate received from external system',
+                message: 'Purchase order processed but failed to send confirmation email to customer.',
             });
         }
-
-        quote.status = 'ordered';
-        quote.processingDate = new Date(poResponse.timeStamp).toISOString();
-        quote.commissionRate = commissionRate;
-        await quote.save({ transaction: t });
-
-        const associate = await User.findByPk(quote.associateId, { transaction: t });
-        const finalAmount = parseFloat(quote.finalAmount);
-        let accumulatedCommission = parseFloat(associate.accumulatedCommission);
-
-        if (isNaN(accumulatedCommission)) {
-            accumulatedCommission = 0;
-        }
-
-        const commission = (finalAmount * commissionRate) / 100;
-        associate.accumulatedCommission = accumulatedCommission + commission;
-        await associate.save({ transaction: t });
-
-        await t.commit();
-
-        await sendPurchaseOrderEmailToCustomer(quote);
-
-        res.json({ success: true, message: 'Purchase order processed', data: poResponse });
+    
+        res.json({
+            success: true,
+            message: 'Purchase order processed successfully.',
+            data: purchaseOrderResult.poResponse,
+        });
     } catch (error) {
-        await t.rollback();
         console.error('Error processing purchase order:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        if (error.status && error.message) {
+            res.status(error.status).json({ success: false, message: error.message, errors: error.errors || undefined });
+        } else {
+            res.status(500).json({ success: false, message: 'Server error while processing the purchase order.' });
+        }
     }
 });
 
@@ -343,7 +399,6 @@ async function sendQuoteEmailToCustomer(quote) {
     const emailContent = `
         <h1>Quote #${quoteId}</h1>
         <p>Associate ID: ${associateId}</p>
-        <p>Customer ID: ${customerId}</p>
         <h2>Line Items:</h2>
         <ul>${lineItemsHtml}</ul>
         <p><strong>Total Before Discount:</strong> $${totalBeforeDiscount.toFixed(2)}</p>
@@ -379,13 +434,14 @@ async function sendPurchaseOrderToExternalSystem(data) {
     }
 }
 
-async function sendPurchaseOrderEmailToCustomer(quote) {
+async function sendPurchaseOrderEmailToCustomer(quote, response) {
     const { email, quoteId, finalAmount, processingDate } = quote;
+    const { order } = response;
   
     const emailContent = `
       <h1>Purchase Order Confirmation</h1>
       <p>Thank you for your order!</p>
-      <p><strong>Order Number:</strong> PO-${quoteId}</p>
+      <p><strong>Order Number:</strong> ${order}</p>
       <p><strong>Processing Date:</strong> ${processingDate}</p>
       <p><strong>Total Amount:</strong> $${finalAmount.toFixed(2)}</p>
     `;
