@@ -160,7 +160,7 @@ function QuoteEditor({ quote, onSave, onCancel }) {
       {customerError && (
         <p className="error-message">{customerError}</p>
       )}
-      
+      <form onSubmit={handleSave}>
       <h4>Line Items</h4>
       {lineItems.map((item, index) => (
         <div key={index} className="form-group">
@@ -205,7 +205,6 @@ function QuoteEditor({ quote, onSave, onCancel }) {
           Add Line Item
         </button>
       </div>
-      
       <h4>Discount</h4>
       <div className="form-group">
         <label htmlFor="discountType">Discount Type:</label>
@@ -222,10 +221,12 @@ function QuoteEditor({ quote, onSave, onCancel }) {
         <label htmlFor="discount">Discount Value:</label>
         <input
           type="number"
+          step="0.01"
           id="discount"
           value={discount}
           onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
           min="0"
+          max="99999999.99"
           required
         />
       </div>
@@ -243,9 +244,15 @@ function QuoteEditor({ quote, onSave, onCancel }) {
       </div>
       {formError && <p className="error-message">{formError}</p>}
       <div className="flex mt-20">
-        <button className="button" onClick={handleSave}>Save Quote</button>
+        <button className="button" type="submit">Save Quote</button>
         <button className="button button-secondary" onClick={onCancel}>Cancel</button>
       </div>
+      </form>
+      
+      
+      
+      
+      
     </div>
   );
 }

@@ -196,12 +196,12 @@ nav button:active, nav a.button:active {
   }
 
   .add-associate-button {
-    width: 100%; /* Full width on small screens */
+    width: 100%; 
     margin-bottom: 15px;
   }
 
   .edit-button, .delete-button {
-    width: 48%; /* Nearly half width each */
+    width: 48%; 
     margin-bottom: 10px;
   }
 
@@ -212,7 +212,7 @@ nav button:active, nav a.button:active {
 
   /* Ensure the toggle button has adequate spacing */
   .toggle-filters-button {
-    width: 100%; /* Full width on small screens */
+    width: 100%; 
     margin-bottom: 15px;
   }
 }
