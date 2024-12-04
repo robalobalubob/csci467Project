@@ -157,6 +157,7 @@ function PurchaseOrderProcessing() {
             <table className="table">
               <thead>
                 <tr>
+                  <th>Associate ID</th>
                   <th>Quote ID</th>
                   <th>Customer ID</th>
                   <th>Total Amount</th>
@@ -166,6 +167,7 @@ function PurchaseOrderProcessing() {
               <tbody>
                 {sanctionedQuotes.map((quote) => (
                   <tr key={quote.quoteId}>
+                    <td>{quote.associateId}</td>
                     <td>{quote.quoteId}</td>
                     <td>{quote.customerId}</td>
                     <td>${parseFloat(quote.totalAmount).toFixed(2)}</td>

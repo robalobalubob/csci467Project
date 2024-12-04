@@ -54,7 +54,7 @@ router.get('/associates/:associateId', async (req, res) => {
 // Create a new sales associate
 router.post('/associates', async (req, res) => {
   const { name, userId, password, address } = req.body;
-a
+
   const validationError = validateAssociateData(req.body);
   if (validationError) {
     return res.status(validationError.status).json({ success: false, message: validationError.message });

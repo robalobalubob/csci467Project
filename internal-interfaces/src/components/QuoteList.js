@@ -16,6 +16,7 @@ function QuoteList({ quotes, onEdit, onSanction }) {
         <table className="table">
           <thead>
             <tr>
+              <th>Associate ID</th>
               <th>Quote ID</th>
               <th>Customer ID</th>
               <th>Total Amount</th>
@@ -27,6 +28,7 @@ function QuoteList({ quotes, onEdit, onSanction }) {
           <tbody>
             {quotes.map((quote) => (
               <tr key={quote.quoteId}>
+                <td>{quote.associateId}</td>
                 <td>{quote.quoteId}</td>
                 <td>{quote.customerId}</td>
                 <td>${parseFloat(quote.totalAmount).toFixed(2)}</td>

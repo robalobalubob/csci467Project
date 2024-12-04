@@ -25,12 +25,11 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     });
   
-    // Associations
-    LineItem.associate = function(models) {
-      // A LineItem belongs to a Quote
-      LineItem.belongsTo(models.Quote, { foreignKey: 'quote_id' });
-    };
-  
-    return LineItem;
+  // Associations
+  LineItem.associate = function(models) {
+    // A LineItem belongs to a Quote
+    LineItem.belongsTo(models.Quote, { foreignKey: 'quote_id' });
   };
-  
+
+  return LineItem;
+};

@@ -85,24 +85,23 @@ Ensure you have the following installed:
      ```
      mysql -u root -p
      ```
-     On Windows open mySQL Command Line Client and enter the password.
+     On Windows open mySQL Command Line Client and enter the root password.
      
      Once logged in, create the database:
 
      ```sql
      CREATE DATABASE IF NOT EXISTS quote_system;
-     EXIT;
      ```
 
 5. **Run Database Migrations**
 
    Apply the Sequelize migrations to set up the database schema:
 
-   ```bash
+   ```
    npx sequelize db:migrate
    ```
 
-6. **(Optional) Seed the Database**
+6. **Seed the Database**
 
    ```
    npx sequelize-cli db:seed:all

@@ -102,7 +102,7 @@ function AssociateForm() {
             navigate('/associates');
         } catch (error) {
             console.error('Error saving associate:', error);
-            alert('Error saving associate');
+            alert('Error saving associate: ' + error.response.data.message);
         }
     };
 
